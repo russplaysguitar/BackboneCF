@@ -6,17 +6,22 @@ _ = new github.UnderscoreCF.Underscore();
 Backbone = {
 	Model: {
 		attributes: {},
+		defaults: {},
 		changedAttributes: {
 			changes: {}
 		},
 		listeners: {},
 		extend: function (obj = {}) {
-			return function (attributes) {
+			return function (attributes = {}) {
 				var newModel = duplicate(Backbone.Model);
 
 				_.each(obj, function(val, key) {
 					newModel[key] = val;
 				});
+
+				if (_.has(obj, 'defaults')) {
+					newModel.attributes = newModel.defaults;
+				}
 
 				_.each(newModel, function(val, key) {
 					if (_.isFunction(val))
@@ -28,7 +33,9 @@ Backbone = {
 					structDelete(attributes, 'id');
 				}
 
-				newModel.attributes = arguments.attributes;
+				_.each(arguments.attributes, function (val, key){
+					newModel.attributes[key] = val;
+				});
 
 				if (structKeyExists(newModel, 'initialize')) {
 					newModel.initialize(attributes);
@@ -43,10 +50,11 @@ Backbone = {
 		},
 		set: function (required string key, required val) {
 			// TODO: handle collection
-			if (_.has(this, 'validate')) {
-				var newAttributes = duplicate(this.attributes);
-				newAttributes[key] = val;
-				this.validate(newAttributes);
+			var newAttributes = duplicate(this.attributes);
+			newAttributes[key] = val;
+			var isValid = this.validate(newAttributes);
+			if (!isValid) {
+				return;
 			}
 			this.changedAttributes.changes[key] = true;
 			this.change(this, val, this.changedAttributes);
@@ -68,6 +76,9 @@ Backbone = {
 			_.each(this.attributes, function (val, key) {
 				this.unset(key, options);
 			});
+		},
+		validate: function (attributes) {
+			return true;
 		},
 		change: function (model, val, changedAttributes) {
 			_.each(changedAttributes.changes, function (v, k) {
@@ -101,6 +112,9 @@ Backbone = {
 					func(model, val, changedAttributes);
 				});
 			}
+		},
+		toJSON: function () {
+			return serializeJSON(this.attributes);
 		}
 	}
 };
@@ -108,6 +122,9 @@ Backbone = {
 MyModel = Backbone.Model.extend({
 	getThis: function () {
 		return this;
+	},
+	validate: function (attributes) {
+		return false;
 	}
 });
 
@@ -123,9 +140,9 @@ a.on('change:y', function (model, val, changedAttributes) {
 	writeDump('y changed'); //writeDump(arguments); 
 }, {ctx:true});
 
-a.set('y', 5);
+a.set('x', 5);
 
-writeDump(a.get('y'));
+writeDump(a.get('x'));
 
 // a.off('change:y');
 
@@ -133,8 +150,22 @@ writeDump(a.get('y'));
 
 // writeDump(a.get('y'));
 
-a.clear();
+// a.clear();
 
-writeDump(a);
+// writeDump(a);
+
+// Meal = Backbone.Model.extend({
+//   defaults: {
+//     "appetizer":  "caesar salad",
+//     "entree":     "ravioli",
+//     "dessert":    "cheesecake"
+//   }
+// });
+
+// m = Meal({
+// 	"entree": "blah"
+// });
+
+// writeDump(m.toJSON());
 
 </cfscript>
