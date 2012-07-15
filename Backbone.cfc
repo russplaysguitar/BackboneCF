@@ -6,18 +6,6 @@ component {
 		return Backbone;
 	}
 
-	// convenience function?
-	public struct function Model(attributes = {}) {
-		var Model = Backbone.Model.extend();
-		return Model(attributes);
-	} 
-
-	// convenience function?
-	public struct function Collection(models = [], options = {}) {
-		var Collection = Backbone.Collection.extend();
-		return Collection(argumentCollection = arguments);
-	} 
-
 	Backbone = {
 		cidCounter: 1
 	};
@@ -86,8 +74,9 @@ component {
 					Model.initialize(attributes);
 				}
 
-				Model.cid = 'c' & Backbone.cidCounter;
-				Backbone.cidCounter++;
+				Model.cid = _.uniqueId('c');
+				// Model.cid = 'c' & Backbone.cidCounter;
+				// Backbone.cidCounter++;
 
 				return Model;
 			};
@@ -99,7 +88,7 @@ component {
 		escape: function (key) {
 			return _.escape(key);
 		},
-		set: function (required string key, required val) {
+		set: function (required string key, val, options = {}) {
 			// TODO: handle collection
 			// TODO: handle silent option
 			// TODO: set up "changed" struct (see backbone.js Model.changed)
@@ -153,7 +142,7 @@ component {
 		}
 	};
 	Backbone.Collection = {
-		model: Backbone.Model.extend(),
+		Model: Backbone.Model.extend(),
 		models: [],
 		extend: function (obj = {}) {
 			return function (models = [], options = {}) {
@@ -265,5 +254,69 @@ component {
 			this.add([newModel]);
 			// TODO: options and events
 		}
-	};	
+	};
+	Backbone.View = {
+		extend: function (obj = {}) {
+			return function (options = {}) {
+				var View = duplicate(Backbone.View);
+
+				_.extend(View, obj);
+
+				_.extend(View, Backbone.Events);
+
+				// apply special options directly to View
+				var specialOptions = ['model','collection','el','id','className','tagName','attributes'];
+				_.each(specialOptions, function (option) {
+					if (_.has(options, option)) {
+						View[option] = options[option];
+						structDelete(options, option);
+					}
+				});
+
+				View.options = options;
+
+				_.bindAll(View);
+
+				if (structKeyExists(View, 'initialize')) {
+					View.initialize(argumentCollection = arguments);
+				}
+
+				View._ensureElement();
+
+				View.cid = _.uniqueId('c');
+
+				// TODO: write Underscore.cfc proxies
+
+				return View;
+			};
+		},
+		tagName: 'div',
+		make: function(required tagName, attributes = {}, content = '') {
+			var htmlTag = "<#tagName#";
+			if (!_.isEmpty(attributes)) {
+				_.each(attributes, function(val, key){
+					htmlTag = htmlTag & " #key#='#val#'";
+				});
+			}
+			htmlTag = htmlTag & ">#content#</#tagName#>";
+			return htmlTag;			
+		},
+		setElement: function(element, delegate) {
+			this.el = element;
+			// TODO: something with delegate? or $el?
+		},
+		_ensureElement: function() {
+			if (!_.has(this, 'el')) {
+				var attrs = duplicate(this.attributes);
+				if (_.has(this, 'id')) 
+					attrs.id = this.id;
+				if (_.has(this, 'className'))
+					attrs.class = this.className;
+				this.setElement(this.make(this.tagName, attrs), false);
+			} 
+			else {
+				this.setElement(this.el, false);
+			}
+		}
+	};
 }

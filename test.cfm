@@ -88,9 +88,44 @@ myCollection = Collection([aHacker]);
 
 // writeDump(myCollection.where({'one':1}));
 
-myCollection.create({two:2});
+// myCollection.create({two:2});
 
-writeDump(myCollection.toJSON());
+// writeDump(myCollection.toJSON());
+
+Document = Backbone.Model.extend();
+
+doc = Document({id: 10, name: 'stuff'});
+
+DocumentRow = Backbone.View.extend({
+
+  tagName: "li",
+
+  className: "document-row",
+
+  attributes: {
+  	jump: "how_high"
+  },
+
+  events: {
+    "click .icon":          "open",
+    "click .button.edit":   "openEditDialog",
+    "click .button.delete": "destroy"
+  },
+
+  render: function() {
+  	writeDump(this.el);
+  }
+
+});
+
+document = DocumentRow({
+	model: doc,
+	id: "document-row-" & doc.id
+});
+
+writeDump(document);
+
+document.render();
 
 
 </cfscript>
