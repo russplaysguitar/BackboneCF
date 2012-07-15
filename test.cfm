@@ -3,32 +3,32 @@
 
 Backbone = new Backbone();
 
-writeDump(Backbone);
+// writeDump(Backbone);
 
-MyModel = Backbone.Model.extend({
-	getThis: function () {
-		return this;
-	},
-	validate: function (attributes) {
-		return false;
-	}
-});
+// MyModel = Backbone.Model.extend({
+// 	getThis: function () {
+// 		return this;
+// 	},
+// 	validate: function (attributes) {
+// 		return false;
+// 	}
+// });
 
-a = MyModel({x: 2});
+// a = MyModel({x: 2});
 
 // writeDump(a);
 
 // writeDump(a.getThis());
 
-writeDump(a.get('x'));
+// writeDump(a.get('x'));
 
-a.on('change:y', function (model, val, changedAttributes) { 
-	writeDump('y changed'); //writeDump(arguments); 
-}, {ctx:true});
+// a.on('change:y', function (model, val, changedAttributes) { 
+// 	writeDump('y changed'); //writeDump(arguments); 
+// }, {ctx:true});
 
-a.set('x', 5);
+// a.set('x', 5);
 
-writeDump(a.get('x'));
+// writeDump(a.get('x'));
 
 // a.off('change:y');
 
@@ -67,12 +67,16 @@ writeDump(a.get('x'));
 
 // writeDump(cake.clone());
 
-Hacker = Backbone.Model.extend();
-
-hacker = Hacker({
-  name: "<script>alert('xss')</script>"
+Hacker = Backbone.Model.extend({
+	fun: "times"
 });
 
-writeOutput(hacker.escape('name'));
+aHacker = Hacker({one:1});
+
+Collection = Backbone.Collection.extend({model: Hacker});
+
+myCollection = Collection([aHacker]);
+
+writeDump(myCollection);
 
 </cfscript>

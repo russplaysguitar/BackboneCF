@@ -2,10 +2,15 @@ component {
 		
 	_ = new github.UnderscoreCF.Underscore();
 
-	public any function init() {
-		
+	public struct function init() {
 		return Backbone;
 	}
+
+	// convenience function?
+	public struct function Model(attributes = {}) {
+		var NewModel = Backbone.Model.extend();
+		return NewModel(attributes);
+	} 
 
 	Backbone = {
 		cidCounter: 1,
@@ -18,35 +23,35 @@ component {
 			listeners: {},
 			extend: function (obj = {}) {
 				return function (attributes = {}) {
-					var newModel = duplicate(Backbone.Model);
+					var Model = duplicate(Backbone.Model);
 
-					_.extend(newModel, obj);
+					_.extend(Model, obj);
 
 					if (_.has(obj, 'defaults')) {
-						newModel.attributes = newModel.defaults;
+						Model.attributes = Model.defaults;
 					}
 
-					_.bindAll(newModel);
+					_.bindAll(Model);
 
 					if (_.has(attributes, 'id')) {
-						newModel.id = attributes.id;
+						Model.id = attributes.id;
 						structDelete(attributes, 'id');
 					}
 
-					if (_.has(newModel, 'idAttribute') && _.has(attributes, newModel.idAttribute)) {
-						newModel.id = attributes[newModel.idAttribute];
+					if (_.has(Model, 'idAttribute') && _.has(attributes, Model.idAttribute)) {
+						Model.id = attributes[Model.idAttribute];
 					}				
 
-					_.extend(newModel.attributes, arguments.attributes);
+					_.extend(Model.attributes, arguments.attributes);
 
-					if (structKeyExists(newModel, 'initialize')) {
-						newModel.initialize(attributes);
+					if (structKeyExists(Model, 'initialize')) {
+						Model.initialize(attributes);
 					}
 
-					newModel.cid = 'c' & Backbone.cidCounter;
+					Model.cid = 'c' & Backbone.cidCounter;
 					Backbone.cidCounter++;
 
-					return newModel;
+					return Model;
 				};
 			},
 			get: function (required string key) {
@@ -135,6 +140,27 @@ component {
 				Backbone.cidCounter++;
 				return newModel;
 			}
+		}
+	};
+	Backbone.Collection = {
+		model: Backbone.Model.extend(),
+		models: [],
+		extend: function (obj = {}) {
+			return function (models = [], options = {}) {
+				var Collection = duplicate(Backbone.Collection);
+
+				_.extend(Collection, obj);
+
+				_.bindAll(Collection);
+
+				Collection.models = models;
+
+				if (structKeyExists(Collection, 'initialize')) {
+					Collection.initialize(argumentCollection = arguments);
+				}
+
+				return Collection;
+			};
 		}
 	};	
 }
