@@ -5,16 +5,16 @@ Backbone = new Backbone();
 
 // writeDump(Backbone);
 
-// MyModel = Backbone.Model.extend({
-// 	getThis: function () {
-// 		return this;
-// 	},
-// 	validate: function (attributes) {
-// 		return false;
-// 	}
-// });
+MyModel = Backbone.Model.extend({
+	getThis: function () {
+		return this;
+	},
+	validate: function (attributes) {
+		return true;
+	}
+});
 
-// a = MyModel({x: 2});
+a = MyModel({x: 2});
 
 // writeDump(a);
 
@@ -22,19 +22,19 @@ Backbone = new Backbone();
 
 // writeDump(a.get('x'));
 
-// a.on('change:y', function (model, val, changedAttributes) { 
-// 	writeDump('y changed'); //writeDump(arguments); 
-// }, {ctx:true});
+a.on('change:y', function (model, val, changedAttributes) { 
+	writeDump('y changed'); //writeDump(arguments); 
+}, {ctx:true});
 
-// a.set('x', 5);
+a.set('y', 5);
 
-// writeDump(a.get('x'));
+writeDump(a.get('x'));
 
-// a.off('change:y');
+a.off('change:y');
 
-// a.set('y', 6);
+a.set('y', 6);
 
-// writeDump(a.get('y'));
+writeDump(a.get('y'));
 
 // a.clear();
 
@@ -77,6 +77,6 @@ Collection = Backbone.Collection.extend({model: Hacker});
 
 myCollection = Collection([aHacker]);
 
-writeDump(myCollection);
+writeDump(myCollection.toJSON());
 
 </cfscript>
