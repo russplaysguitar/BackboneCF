@@ -22,19 +22,19 @@ a = MyModel({x: 2});
 
 // writeDump(a.get('x'));
 
-a.on('change:y', function (model, val, changedAttributes) { 
-	writeDump('y changed'); //writeDump(arguments); 
-}, {ctx:true});
+// a.on('change:y', function (model, val, changedAttributes) { 
+// 	writeDump('y changed'); //writeDump(arguments); 
+// }, {ctx:true});
 
-a.set('y', 5);
+// a.set('y', 5);
 
-writeDump(a.get('x'));
+// writeDump(a.get('x'));
 
-a.off('change:y');
+// a.off('change:y');
 
-a.set('y', 6);
+// a.set('y', 6);
 
-writeDump(a.get('y'));
+// writeDump(a.get('y'));
 
 // a.clear();
 
@@ -71,12 +71,26 @@ Hacker = Backbone.Model.extend({
 	fun: "times"
 });
 
-aHacker = Hacker({one:1});
+aHacker = Hacker({one:1, id:50});
 
 Collection = Backbone.Collection.extend({model: Hacker});
 
 myCollection = Collection([aHacker]);
 
+// writeDump(myCollection);
+
+// myCollection.remove([aHacker]);
+
+// writeDump(myCollection);
+
+
+// writeDump(myCollection.pop());
+
+// writeDump(myCollection.where({'one':1}));
+
+myCollection.create({two:2});
+
 writeDump(myCollection.toJSON());
+
 
 </cfscript>

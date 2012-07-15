@@ -161,6 +161,8 @@ component {
 
 				_.extend(Collection, obj);
 
+				_.extend(Collection, Backbone.Events);
+
 				_.bindAll(Collection);
 
 				Collection.models = models;
@@ -184,27 +186,84 @@ component {
 			_.each(models, function(model) {
 				if (_.has(model, 'cid')) {
 					// model is already a Backbone Model
-					arrayAppend(this.models, model);
+					this.push(model);
 				}
 				else {
 					var newModel = this.Model(model);
-					arrayAppend(this.models, newModel);					
+					this.push(newModel);
 				}
+				// TODO: handle options and events
 			});
 		},
-		remove: function () {},
-		get: function () {},
-		getByCid: function () {},
-		at: function () {},
-		push: function () {},
-		pop: function () {},
-		unshift: function () {},
-		shift: function () {},
-		length: function () {},
-		comparator: function () {},
-		sort: function () {},
-		pluck: function () {},
-		where: function () {},
-		create: function () {}
+		remove: function (models = [], options = {}) {
+			this.models = _.without(this.models, models);
+			// TODO: events
+		},
+		get: function (required id) {
+			return _.find(this.models, function(model) {
+				return _.has(model, 'id') && model.id == id;
+			});
+		},
+		getByCid: function (required cid) {
+			return _.find(this.models, function(model) {
+				return model.cid == cid;
+			});
+		},
+		at: function (required index) {
+			return this.models[index];
+		},
+		push: function (required model, options = {}) {
+			ArrayAppend(this.models, model);
+			// TODO: trigger event, handle options
+		},
+		pop: function (options = {}) {
+			var result = _.last(this.models);
+			this.remove([result]);
+			return result;
+		},
+		unshift: function (required model, options = {}) {
+			ArrayPrepend(this.models, model);
+			// TODO: events and options
+		},
+		shift: function (options = {}) {
+			var result = _.first(this.models);
+			this.remove([result]);
+			return result;
+			// TODO: options
+		},
+		length: function () {
+			return _.size(this.models);
+		},
+		sort: function (options = {}) {
+			if (_.has(this, 'comparator'))
+				this.models = _.sortBy(this.models, this.comparator);
+			else 
+				throw('Cannot sort a set without a comparator', 'Backbone');
+			// TODO: options and "reset" event
+		},
+		pluck: function (required attribute) {
+			return _.map(this.models, function(model) {
+				return model.get(attribute);				
+			});
+		},
+		where: function (required attributes) {
+			return _.filter(this.models, function(model) {
+				var result = true;
+				_.each(attributes, function(val, key){
+					if(!model.get(key) == val) 
+						result = false;
+				});
+				return result;
+			});
+		},
+		reset: function (models = [], options = {}) {
+			this.models = models;
+			// TODO: options and events
+		},
+		create: function (attributes = {}, options = {}) {
+			var newModel = this.Model(argumentCollection = arguments);
+			this.add([newModel]);
+			// TODO: options and events
+		}
 	};	
 }
