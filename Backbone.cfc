@@ -6,9 +6,7 @@ component {
 		return Backbone;
 	}
 
-	Backbone = {
-		cidCounter: 1
-	};
+	Backbone = {};
 	Backbone.Events = {
 		on: function (required string eventName, required callback, context = {}) {
 			var event = listFirst(eventName, ":");
@@ -75,8 +73,6 @@ component {
 				}
 
 				Model.cid = _.uniqueId('c');
-				// Model.cid = 'c' & Backbone.cidCounter;
-				// Backbone.cidCounter++;
 
 				return Model;
 			};
@@ -136,8 +132,7 @@ component {
 		},
 		clone: function () {
 			var newModel = duplicate(this);
-			newModel.cid = Backbone.cidCounter;
-			Backbone.cidCounter++;
+			newModel.cid = _.uniqueId('c');
 			return newModel;
 		}
 	};
