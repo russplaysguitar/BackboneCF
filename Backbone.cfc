@@ -142,33 +142,6 @@ component {
 				this.trigger(eventName, model, val, changedAttributes);
 			});
 		},
-		// on: function (required string eventName, required callback, context = {}) {
-		// 	var event = listFirst(eventName, ":");
-		// 	var attribute = listLast(eventName, ":");
-
-		// 	if (!_.has(this.listeners, eventName))
-		// 		this.listeners[eventName] = [];
-
-		// 	if (!_.isEmpty(context))
-		// 		callback = _.bind(callback, context);
-
-		// 	// TODO: allow callback to be referenced by name or something so off() can remove it specifically
-		// 	ArrayAppend(this.listeners[eventName], callback);
-		// },
-		// off: function (eventName, callback, context) {
-		// 	if (_.has(this.listeners, eventName)) {
-		// 		structDelete(this.listeners, eventName);
-		// 	}
-		// },
-		// trigger: function (eventName, model, val, changedAttributes) {
-		// 	// TODO: handle list of events
-		// 	if (_.has(this.listeners, eventName)) {
-		// 		var funcsArray = this.listeners[eventName];
-		// 		_.each(funcsArray, function (func) {
-		// 			func(model, val, changedAttributes);
-		// 		});
-		// 	}
-		// },
 		toJSON: function () {
 			return serializeJSON(this.attributes);
 		},
