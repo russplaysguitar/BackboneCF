@@ -4,6 +4,7 @@
 _ = new github.UnderscoreCF.Underscore();
 
 Backbone = {
+	cidCounter: 1,
 	Model: {
 		attributes: {},
 		defaults: {},
@@ -15,31 +16,31 @@ Backbone = {
 			return function (attributes = {}) {
 				var newModel = duplicate(Backbone.Model);
 
-				_.each(obj, function(val, key) {
-					newModel[key] = val;
-				});
+				_.extend(newModel, obj);
 
 				if (_.has(obj, 'defaults')) {
 					newModel.attributes = newModel.defaults;
 				}
 
-				_.each(newModel, function(val, key) {
-					if (_.isFunction(val))
-						newModel[key] = _.bind(val, newModel);
-				});
+				_.bindAll(newModel);
 
 				if (_.has(attributes, 'id')) {
 					newModel.id = attributes.id;
 					structDelete(attributes, 'id');
 				}
 
-				_.each(arguments.attributes, function (val, key){
-					newModel.attributes[key] = val;
-				});
+				if (_.has(newModel, 'idAttribute') && _.has(attributes, newModel.idAttribute)) {
+					newModel.id = attributes[newModel.idAttribute];
+				}				
+
+				_.extend(newModel.attributes, arguments.attributes);
 
 				if (structKeyExists(newModel, 'initialize')) {
 					newModel.initialize(attributes);
 				}
+
+				newModel.cid = 'c' & Backbone.cidCounter;
+				Backbone.cidCounter++;
 
 				return newModel;
 			};
@@ -48,8 +49,13 @@ Backbone = {
 			if (this.has(key))
 				return this.attributes[key];
 		},
+		escape: function (key) {
+			return _.escape(key);
+		},
 		set: function (required string key, required val) {
 			// TODO: handle collection
+			// TODO: handle silent option
+			// TODO: set up "changed" struct (see backbone.js Model.changed)
 			var newAttributes = duplicate(this.attributes);
 			newAttributes[key] = val;
 			var isValid = this.validate(newAttributes);
@@ -79,6 +85,9 @@ Backbone = {
 		},
 		validate: function (attributes) {
 			return true;
+		},
+		isValid: function () {
+			return this.validate();
 		},
 		change: function (model, val, changedAttributes) {
 			_.each(changedAttributes.changes, function (v, k) {
@@ -115,6 +124,12 @@ Backbone = {
 		},
 		toJSON: function () {
 			return serializeJSON(this.attributes);
+		},
+		clone: function () {
+			var newModel = duplicate(this);
+			newModel.cid = Backbone.cidCounter;
+			Backbone.cidCounter++;
+			return newModel;
 		}
 	}
 };
@@ -166,6 +181,27 @@ writeDump(a.get('x'));
 // 	"entree": "blah"
 // });
 
+// writeDump(m);
+
 // writeDump(m.toJSON());
+
+// Meal = Backbone.Model.extend({
+//   idAttribute: "_id"
+// });
+
+// cake = Meal({ _id: 1, id:2, name: "Cake" });
+// writeDump("Cake id: " & cake.id);
+
+// writeDump(cake);
+
+// writeDump(cake.clone());
+
+Hacker = Backbone.Model.extend();
+
+hacker = Hacker({
+  name: "<script>alert('xss')</script>"
+});
+
+writeOutput(hacker.escape('name'));
 
 </cfscript>
