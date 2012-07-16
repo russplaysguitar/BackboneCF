@@ -114,7 +114,7 @@ Document = Backbone.Model.extend();
 
 DocCollection = Backbone.Collection.extend({
 	model: Document,
-	url: 'examples/documents'
+	url: 'http://localhost:8500/rest/MyRest/restService'
 });
 
 /* end definitions */

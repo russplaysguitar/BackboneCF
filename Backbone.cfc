@@ -65,7 +65,10 @@ component {
 		}
 		if (Backbone.emulateJSON) {
 			params.contentType = 'application/x-www-form-urlencoded';
-			params.data = params.data ? {model: params.data} : {};
+			if (_.has(params, 'data'))
+				params.data = {model: params.data};
+			else
+				params.data = {};
 	    }
 	    if (Backbone.emulateHTTP) {
 			if (type == 'PUT' || type == 'DELETE') {
@@ -288,14 +291,21 @@ component {
 		fetch: function (struct options = {}) {
 			if (!_.has(options, 'parse'))
 				options.parse = true;
-			var result = Backbone.Sync('read', this, options);
-			var result = httpCFC.request("http://localhost:8500/rest/MyRest/restService", "8500");
-			var resultArray = deserializeJSON(result);
-			this.reset();
-			this.add(resultArray);
+			var collection = this;
+			if (!_.has(options, 'success'))
+				options.success = function () {};
+			var success = options.success;
+			options.success = function(resp, status, xhr) {
+				var func = collection[_.has(options, 'add') ? 'add' : 'reset'];
+				func(collection.parse(resp, xhr), options);
+				success(collection, resp);
+			};
+			var result = Backbone.Sync('read', collection, options);
+			// var result = httpCFC.request("http://localhost:8500/rest/MyRest/restService", "8500");
 		},
 		reset: function (array models = [], struct options = {}) {
-			this.models = models;
+			this.models = [];
+			this.add(models);
 			// TODO: options and events
 		},
 		create: function (struct attributes = {}, struct options = {}) {
@@ -303,6 +313,9 @@ component {
 			this.add([newModel]);
 			return newModel;
 			// TODO: options and events
+		},
+		parse: function(resp, xhr) {
+			return resp;
 		}
 	};
 
