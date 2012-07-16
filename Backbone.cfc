@@ -1,12 +1,18 @@
 component {
-		
-	_ = new github.UnderscoreCF.Underscore();
 
 	public struct function init() {
+		variables._ = new github.UnderscoreCF.Underscore();
+
+		variables.httpCFC = new Http();
+
 		return Backbone;
 	}
 
-	Backbone = {};
+	Backbone = {
+		emulateJSON: false,
+		emulateHTTP: false
+	};
+
 	Backbone.Events = {
 		on: function (required string eventName, required callback, context = {}) {
 			var event = listFirst(eventName, ":");
@@ -21,12 +27,12 @@ component {
 			// TODO: allow callback to be referenced by name or something so off() can remove it specifically
 			ArrayAppend(this.listeners[eventName], callback);
 		},
-		off: function (eventName, callback, context) {
+		off: function (required string eventName, callback, context) {
 			if (_.has(this.listeners, eventName)) {
 				structDelete(this.listeners, eventName);
 			}
 		},
-		trigger: function (eventName, model, val, changedAttributes) {
+		trigger: function (required string eventName, struct model, val, struct changedAttributes) {
 			// TODO: handle list of events
 			if (_.has(this.listeners, eventName)) {
 				var funcsArray = this.listeners[eventName];
@@ -36,6 +42,44 @@ component {
 			}
 		}
 	};
+
+	variables.methodMap = {
+		'create': 'POST',
+		'update': 'PUT',
+		'delete': 'DELETE',
+		'read':   'GET'
+	};
+
+	Backbone.Sync = function (required string method, struct model, struct options = {}) {
+		var type = methodMap[method];
+		var params = {type: type, dataType: 'json'};
+
+		if (!_.has(options, 'url')) {
+			if (!_.has(model, 'url'))
+				throw('A "url" property or function must be specified', 'Backbone');
+			params.url = _.result(model, 'url');
+	    }
+	    if (!_.has(options, 'data') && _.has(arguments, 'model') && (method == 'create' || method == 'update')) {
+			params.contentType = 'application/json';
+			params.data = model.toJSON();
+		}
+		if (Backbone.emulateJSON) {
+			params.contentType = 'application/x-www-form-urlencoded';
+			params.data = params.data ? {model: params.data} : {};
+	    }
+	    if (Backbone.emulateHTTP) {
+			if (type == 'PUT' || type == 'DELETE') {
+				if (Backbone.emulateJSON)
+					params.data._method = type;
+				params.type = 'POST';
+				params.headers = {
+					'X-HTTP-Method-Override': type
+				};
+			}
+		}
+		return httpCFC.request(argumentCollection = _.extend(params, options)); 
+	};
+
 	Backbone.Model = {
 		attributes: {},
 		defaults: {},
@@ -43,8 +87,8 @@ component {
 			changes: {}
 		},
 		listeners: {},
-		extend: function (obj = {}) {
-			return function (attributes = {}) {
+		extend: function (struct obj = {}) {
+			return function (struct attributes = {}) {
 				var Model = duplicate(Backbone.Model);
 
 				_.extend(Model, obj);
@@ -84,7 +128,7 @@ component {
 		escape: function (key) {
 			return _.escape(key);
 		},
-		set: function (required string key, val, options = {}) {
+		set: function (required string key, required val, struct options = {}) {
 			// TODO: handle collection
 			// TODO: handle silent option
 			// TODO: set up "changed" struct (see backbone.js Model.changed)
@@ -101,7 +145,7 @@ component {
 		has: function (required string key) {
 			return _.has(this.attributes, key);
 		},
-		unset: function (required string key, options = { silent: false }) {
+		unset: function (required string key, struct options = { silent: false }) {
 			if (!this.has(key)) 
 				return;
 			this.changedAttributes.changes[key] = true;
@@ -110,18 +154,18 @@ component {
 			if (!options.silent) 
 				this.change(this, val, this.changedAttributes);
 		},
-		clear: function (options = { silent: false }) {
+		clear: function (struct options = { silent: false }) {
 			_.each(this.attributes, function (val, key) {
 				this.unset(key, options);
 			});
 		},
-		validate: function (attributes) {
+		validate: function (struct attributes) {
 			return true;
 		},
 		isValid: function () {
 			return this.validate();
 		},
-		change: function (model, val, changedAttributes) {
+		change: function (required struct model, required val, struct changedAttributes) {
 			_.each(changedAttributes.changes, function (v, k) {
 				var eventName = 'change:' & k;
 				this.trigger(eventName, model, val, changedAttributes);
@@ -136,10 +180,11 @@ component {
 			return newModel;
 		}
 	};
+
 	Backbone.Collection = {
 		Model: Backbone.Model.extend(),
 		models: [],
-		extend: function (obj = {}) {
+		extend: function (struct obj = {}) {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
 
@@ -166,7 +211,7 @@ component {
 			});
 			return result;
 		},
-		add: function (models = [], options = {}) {
+		add: function (array models = [], struct options = {}) {
 			_.each(models, function(model) {
 				if (_.has(model, 'cid')) {
 					// model is already a Backbone Model
@@ -179,37 +224,37 @@ component {
 				// TODO: handle options and events
 			});
 		},
-		remove: function (models = [], options = {}) {
+		remove: function (array models = [], struct options = {}) {
 			this.models = _.without(this.models, models);
 			// TODO: events
 		},
-		get: function (required id) {
+		get: function (required string id) {
 			return _.find(this.models, function(model) {
 				return _.has(model, 'id') && model.id == id;
 			});
 		},
-		getByCid: function (required cid) {
+		getByCid: function (required string cid) {
 			return _.find(this.models, function(model) {
 				return model.cid == cid;
 			});
 		},
-		at: function (required index) {
+		at: function (required numeric index) {
 			return this.models[index];
 		},
-		push: function (required model, options = {}) {
+		push: function (required struct model, struct options = {}) {
 			ArrayAppend(this.models, model);
 			// TODO: trigger event, handle options
 		},
-		pop: function (options = {}) {
+		pop: function (struct options = {}) {
 			var result = _.last(this.models);
 			this.remove([result]);
 			return result;
 		},
-		unshift: function (required model, options = {}) {
+		unshift: function (required struct model, struct options = {}) {
 			ArrayPrepend(this.models, model);
 			// TODO: events and options
 		},
-		shift: function (options = {}) {
+		shift: function (struct options = {}) {
 			var result = _.first(this.models);
 			this.remove([result]);
 			return result;
@@ -218,19 +263,19 @@ component {
 		length: function () {
 			return _.size(this.models);
 		},
-		sort: function (options = {}) {
+		sort: function (struct options = {}) {
 			if (_.has(this, 'comparator'))
 				this.models = _.sortBy(this.models, this.comparator);
 			else 
 				throw('Cannot sort a set without a comparator', 'Backbone');
 			// TODO: options and "reset" event
 		},
-		pluck: function (required attribute) {
+		pluck: function (required struct attribute) {
 			return _.map(this.models, function(model) {
 				return model.get(attribute);				
 			});
 		},
-		where: function (required attributes) {
+		where: function (required struct attributes) {
 			return _.filter(this.models, function(model) {
 				var result = true;
 				_.each(attributes, function(val, key){
@@ -240,19 +285,30 @@ component {
 				return result;
 			});
 		},
-		reset: function (models = [], options = {}) {
+		fetch: function (struct options = {}) {
+			if (!_.has(options, 'parse'))
+				options.parse = true;
+			var result = Backbone.Sync('read', this, options);
+			var result = httpCFC.request("http://localhost:8500/rest/MyRest/restService", "8500");
+			var resultArray = deserializeJSON(result);
+			this.reset();
+			this.add(resultArray);
+		},
+		reset: function (array models = [], struct options = {}) {
 			this.models = models;
 			// TODO: options and events
 		},
-		create: function (attributes = {}, options = {}) {
+		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);
 			this.add([newModel]);
+			return newModel;
 			// TODO: options and events
 		}
 	};
+
 	Backbone.View = {
-		extend: function (obj = {}) {
-			return function (options = {}) {
+		extend: function (struct obj = {}) {
+			return function (struct options = {}) {
 				var View = duplicate(Backbone.View);
 
 				_.extend(View, obj);
@@ -286,7 +342,7 @@ component {
 			};
 		},
 		tagName: 'div',
-		make: function(required tagName, attributes = {}, content = '') {
+		make: function(required string tagName, struct attributes = {}, string content = '') {
 			var htmlTag = "<#tagName#";
 			if (!_.isEmpty(attributes)) {
 				_.each(attributes, function(val, key){
