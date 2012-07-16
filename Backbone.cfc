@@ -84,21 +84,29 @@ component {
 	};
 
 	Backbone.Model = {
+		initialize: function () {},
 		attributes: {},
 		defaults: {},
 		changedAttributes: {
 			changes: {}
 		},
+		_escapedAttribuets: {},
+		_silent: {},
+		_pending: {},
 		listeners: {},
-		extend: function (struct obj = {}) {
-			return function (struct attributes = {}) {
+		idAttribute: 'id',
+		extend: function (struct properties = {}) {
+			return function (struct attributes = {}, struct options = {}) {
 				var Model = duplicate(Backbone.Model);
 
-				_.extend(Model, obj);
+				_.extend(Model, properties);
 
-				if (_.has(obj, 'defaults')) {
-					Model.attributes = Model.defaults;
+				if (_.has(properties, 'defaults')) {
+					arguments.attributes = _.extend({}, properties.defaults, arguments.attributes);
 				}
+			
+			    if (_.has(options, 'collection')) 
+			   		Model.collection = options.collection;
 
 				_.extend(Model, Backbone.Events);
 
@@ -109,15 +117,13 @@ component {
 					structDelete(attributes, 'id');
 				}
 
-				if (_.has(Model, 'idAttribute') && _.has(attributes, Model.idAttribute)) {
+				if (_.has(attributes, Model.idAttribute)) {
 					Model.id = attributes[Model.idAttribute];
 				}				
 
-				_.extend(Model.attributes, arguments.attributes);
+				Model.setMultiple(arguments.attributes, {silent: true});
 
-				if (structKeyExists(Model, 'initialize')) {
-					Model.initialize(attributes);
-				}
+				Model.initialize(attributes);
 
 				Model.cid = _.uniqueId('c');
 
@@ -128,8 +134,17 @@ component {
 			if (this.has(key))
 				return this.attributes[key];
 		},
-		escape: function (key) {
-			return _.escape(key);
+		escape: function (attr) {
+			return _.escape(this.get(attr));
+		},
+		setMultiple: function (required struct data, struct options = {}) {
+			// TODO: use Set() instead
+			// TODO: handle options
+			_.each(data, function(val, key) {
+				this.set(key, val, options);
+			});
+
+			return true;
 		},
 		set: function (required string key, required val, struct options = {}) {
 			// TODO: handle collection
@@ -139,14 +154,15 @@ component {
 			newAttributes[key] = val;
 			var isValid = this.validate(newAttributes);
 			if (!isValid) {
-				return;
+				return false;
 			}
 			this.changedAttributes.changes[key] = true;
 			this.change(this, val, this.changedAttributes);
 			this.attributes[key] = val;
+			return true;
 		},
-		has: function (required string key) {
-			return _.has(this.attributes, key);
+		has: function (required string attribute) {
+			return _.has(this.attributes, attribute);
 		},
 		unset: function (required string key, struct options = { silent: false }) {
 			if (!this.has(key)) 
@@ -181,17 +197,50 @@ component {
 			var newModel = duplicate(this);
 			newModel.cid = _.uniqueId('c');
 			return newModel;
+		},
+		fetch: function (struct options = {}) {
+			if (!_.has(options, 'parse'))
+				options.parse = true;
+			var model = this;
+			if (!_.has(options, 'success'))
+				options.success = function () {};
+			var success = options.success;
+			options.success = function(resp, status, xhr) {
+				if (!model.setMultiple(model.parse(resp, xhr), options)) 
+					return false;
+				success(model, resp);
+			};
+			var result = Backbone.Sync('read', model, options);
+		},
+		parse: function(resp, xhr) {
+			return resp;
+	    },
+	    url: function() {
+	    	if (_.has(this, 'urlRoot'))
+	    		var base = _.result(this, 'urlRoot');
+	    	else if (_.has(this, 'collection') && _.has(this.collection, 'url'))
+	    		var base = _.result(this.collection, 'url');
+	    	else
+				throw('A "url" property or function must be specified', 'Backbone');
+			if (this.isNew()) 
+				return base;
+			return base & (right(base, 1) == '/' ? '' : '/') & urlEncodedFormat(this.id);
+		},
+		isNew: function () {
+			// TODO: implement this
+			return false;
 		}
 	};
 
 	Backbone.Collection = {
+		initialize: function () {},
 		Model: Backbone.Model.extend(),
 		models: [],
-		extend: function (struct obj = {}) {
+		extend: function (struct properties = {}) {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
 
-				_.extend(Collection, obj);
+				_.extend(Collection, properties);
 
 				_.extend(Collection, Backbone.Events);
 
@@ -199,9 +248,7 @@ component {
 
 				Collection.models = models;
 
-				if (structKeyExists(Collection, 'initialize')) {
-					Collection.initialize(argumentCollection = arguments);
-				}
+				Collection.initialize(argumentCollection = arguments);
 
 				// TODO: write Underscore.cfc proxies
 
@@ -301,7 +348,6 @@ component {
 				success(collection, resp);
 			};
 			var result = Backbone.Sync('read', collection, options);
-			// var result = httpCFC.request("http://localhost:8500/rest/MyRest/restService", "8500");
 		},
 		reset: function (array models = [], struct options = {}) {
 			this.models = [];

@@ -110,7 +110,9 @@ DocumentRow = Backbone.View.extend({
   }
 });
 
-Document = Backbone.Model.extend();
+Document = Backbone.Model.extend({
+  urlRoot: 'http://localhost:8500/rest/MyRest/restService'
+});
 
 DocCollection = Backbone.Collection.extend({
 	model: Document,
@@ -145,4 +147,10 @@ _.each(docCollect.models, function(model) {
   });
   row.render();
 });
+
+d = Document({id:300});
+d.fetch();
+
+writeDump(d.toJSON());
+
 </cfscript>
