@@ -90,9 +90,9 @@ component {
 		changedAttributes: {
 			changes: {}
 		},
-		_escapedAttribuets: {},
 		_silent: {},
 		_pending: {},
+		changed: {},
 		listeners: {},
 		idAttribute: 'id',
 		extend: function (struct properties = {}) {
@@ -123,6 +123,8 @@ component {
 
 				Model.setMultiple(arguments.attributes, {silent: true});
 
+				Model._previousAttributes = _.clone(arguments.attributes);
+
 				Model.initialize(attributes);
 
 				Model.cid = _.uniqueId('c');
@@ -137,10 +139,14 @@ component {
 		escape: function (attr) {
 			return _.escape(this.get(attr));
 		},
-		setMultiple: function (required struct data, struct options = {}) {
+		setMultiple: function (required struct attributes, struct options = {}) {
 			// TODO: use Set() instead
 			// TODO: handle options
-			_.each(data, function(val, key) {
+
+			if (!this._validate(attributes, options))
+				return false;
+
+			_.each(attributes, function(val, key) {
 				this.set(key, val, options);
 			});
 
@@ -152,7 +158,7 @@ component {
 			// TODO: set up "changed" struct (see backbone.js Model.changed)
 			var newAttributes = duplicate(this.attributes);
 			newAttributes[key] = val;
-			var isValid = this.validate(newAttributes);
+			var isValid = this._validate(newAttributes, options);
 			if (!isValid) {
 				return false;
 			}
@@ -178,12 +184,34 @@ component {
 				this.unset(key, options);
 			});
 		},
-		validate: function (struct attributes) {
-			return true;
+		_validate: function (struct attributes, struct options = { silent:false }) {
+			var silent = _.has(options, 'silent') && options.silent;
+			if (silent || !_.has(this, 'validate'))
+				return true;
+			var attrs = _.extend({}, this.attributes, arguments.attributes);
+			var error = this.validate(attrs, options);
+			if (!error) 
+				return true;
+			if (_.has(options, 'error')) {
+				options.error(this, error, options);
+			} 
+			else {
+				this.trigger('error', this, error, options);
+			}
+			return false;
 		},
 		isValid: function () {
-			return this.validate();
+			return isNull(this.validate(this.attributes));
 		},
+		previous: function(required attr) {
+			if (!_.has(this._previousAttributes, attr))
+				return;
+			else
+				return this._previousAttributes[attr];
+		},
+		previousAttributes: function() {
+			return _.clone(this._previousAttributes);
+	    },
 		change: function (required struct model, required val, struct changedAttributes) {
 			_.each(changedAttributes.changes, function (v, k) {
 				var eventName = 'change:' & k;
