@@ -153,4 +153,8 @@ d.fetch();
 
 writeDump(d.toJSON());
 
+docCollect.each(iterator = function(v,k,l,c){
+  writeDump(v);
+});
+
 </cfscript>

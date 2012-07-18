@@ -272,13 +272,36 @@ component {
 
 				_.extend(Collection, Backbone.Events);
 
+				if (_.has(options, 'comparator')) 
+					Collection.comparator = options.comparator;
+
+
+				// methods we want to implement from Underscore
+				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
+				    'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
+				    'include', 'invoke', 'max', 'min', 'sortBy', 'sortedIndex',
+				    'toArray', 'size', 'first', 'initial', 'rest', 'last', 'without', 'indexOf',
+				    'shuffle', 'lastIndexOf', 'isEmpty', 'groupBy'];
+				_.each(methods, function(method) {
+					Collection[method] = function () {
+						var Underscore = new github.UnderscoreCF.Underscore(this.models);
+						var func = _.bind(Underscore[method], Underscore);
+						return func(argumentCollection = arguments);
+					};
+				});
+
 				_.bindAll(Collection);
+
+				Collection._reset();
 
 				Collection.models = models;
 
 				Collection.initialize(argumentCollection = arguments);
 
-				// TODO: write Underscore.cfc proxies
+				if (_.size(models) > 0) {
+					options.parse = _.has(options, 'parse') ? options.parse : Collection.parse;
+					Collection.reset(models, {silent: true, parse: options.parse});
+				}
 
 				return Collection;
 			};
@@ -378,9 +401,14 @@ component {
 			var result = Backbone.Sync('read', collection, options);
 		},
 		reset: function (array models = [], struct options = {}) {
-			this.models = [];
+			this._reset();
 			this.add(models);
 			// TODO: options and events
+		},
+		_reset: function(struct options = {}) {
+			this.models = [];
+			this._byId  = {};
+			this._byCid = {};
 		},
 		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);
@@ -390,6 +418,9 @@ component {
 		},
 		parse: function(resp, xhr) {
 			return resp;
+		},
+		length: function () {
+			return _.size(this.models);
 		}
 	};
 
