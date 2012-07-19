@@ -275,7 +275,6 @@ component {
 				if (_.has(options, 'comparator')) 
 					Collection.comparator = options.comparator;
 
-
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
 				    'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
@@ -314,14 +313,13 @@ component {
 		},
 		add: function (array models = [], struct options = {}) {
 			_.each(models, function(model) {
-				if (_.has(model, 'cid')) {
-					// model is already a Backbone Model
-					this.push(model);
+				var backboneModel = this._prepareModel(model);
+				if (!isStruct(backboneModel)) {
+					throw("Can't add an invalid model to a collection", 'Backbone');
 				}
-				else {
-					var newModel = this.Model(model);
-					this.push(newModel);
-				}
+				ArrayAppend(this.models, backboneModel);
+				// TODO: remove duplicates
+				// TODO: resort collection if needed 				
 				// TODO: handle options and events
 			});
 		},
@@ -343,8 +341,9 @@ component {
 			return this.models[index];
 		},
 		push: function (required struct model, struct options = {}) {
-			ArrayAppend(this.models, model);
-			// TODO: trigger event, handle options
+			var backboneModel = this._prepareModel(model);
+			this.add([backboneModel], options);
+			return backboneModel;
 		},
 		pop: function (struct options = {}) {
 			var result = _.last(this.models);
@@ -410,6 +409,21 @@ component {
 			this._byId  = {};
 			this._byCid = {};
 		},
+		_prepareModel: function(required struct model, struct options = {}) {
+			// TODO: fix circular reference to collection (maybe write getCollection() ?)
+			// TODO: improve model check to ensure correct type of model
+			if (!(_.has(model, 'cid'))) {
+				var attrs = model;
+				//options.collection = this;
+				model = this.Model(attrs, options);
+				if (!model._validate(model.attributes, options)) 
+					model = false;
+			} 
+			else if (!_.has(model, 'collection')) {
+				//model.collection = this;
+			}
+			return model;
+	    },
 		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);
 			this.add([newModel]);

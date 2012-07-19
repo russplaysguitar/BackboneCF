@@ -151,10 +151,10 @@ _.each(docCollect.models, function(model) {
 d = Document({id:300});
 d.fetch();
 
-writeDump(d.toJSON());
+docCollect.add([{content:'asdf'}]);
 
-docCollect.each(iterator = function(v,k,l,c){
-  writeDump(v);
-});
+writeDump(docCollect.models);
+
+// TODO: get REST working on individual models (GET+POST)
 
 </cfscript>
