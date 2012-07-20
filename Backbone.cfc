@@ -168,7 +168,12 @@ component {
 			}
 			this.changedAttributes.changes[key] = true;
 			this.change(this, val, this.changedAttributes);
-			this.attributes[key] = val;
+			if (this.idAttribute == key) {
+				this[key] = val;
+			}
+			else {
+				this.attributes[key] = val;
+			}
 			return true;
 		},
 		has: function (required string attribute) {
@@ -333,12 +338,7 @@ component {
 		},
 		get: function (required string id) {
 			return _.find(this.models, function(model) {
-				if (model.idAttribute != 'id') {
-					return model.get(model.idAttribute) == id;
-				}
-				else {
-					return _.has(model, 'id') && model.id == id;
-				}
+				return model[model.idAttribute] == id;
 			});
 		},
 		getByCid: function (required string cid) {

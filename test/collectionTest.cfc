@@ -41,10 +41,24 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 
+	public void function updateIndexWhenIdChanges() {
+		var MyCol = Backbone.Collection.extend();
+		var col = MyCol();
+		col.add([
+		  {id : 0, name : 'one'},
+		  {id : 1, name : 'two'}
+		]);
+		var one = col.get(0);
+		assertEquals(one.get('name'), 'one');
+		one.setMultiple({id : 101});
+		assertEquals(col.get(101).get('name'), 'one');
+	}
+	
+	
 
 
 	public void function setUp() {
-		variables.Backbone = new backbone.Backbone();
+		variables.Backbone  = new backbone.Backbone();
 		variables.MyModel   = Backbone.Model.extend();
 		variables.a         = variables.MyModel({id: 3, label: 'a'});
 		variables.b         = variables.MyModel({id: 2, label: 'b'});
