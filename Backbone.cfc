@@ -18,28 +18,32 @@ component {
 			var event = listFirst(eventName, ":");
 			var attribute = listLast(eventName, ":");
 
-			if (!_.has(this.listeners, eventName))
-				this.listeners[eventName] = [];
+			if (!_.has(this._callbacks, eventName))
+				this._callbacks[eventName] = [];
 
 			if (!_.isEmpty(context))
 				callback = _.bind(callback, context);
 
 			// TODO: allow callback to be referenced by name or something so off() can remove it specifically
-			ArrayAppend(this.listeners[eventName], callback);
+			ArrayAppend(this._callbacks[eventName], callback);
+
+			return this;
 		},
 		off: function (required string eventName, callback, context) {
-			if (_.has(this.listeners, eventName)) {
-				structDelete(this.listeners, eventName);
+			if (_.has(this._callbacks, eventName)) {
+				structDelete(this._callbacks, eventName);
 			}
+			return this;
 		},
 		trigger: function (required string eventName, struct model, val, struct changedAttributes) {
 			// TODO: handle list of events
-			if (_.has(this.listeners, eventName)) {
-				var funcsArray = this.listeners[eventName];
+			if (_.has(this._callbacks, eventName)) {
+				var funcsArray = this._callbacks[eventName];
 				_.each(funcsArray, function (func) {
 					func(model, val, changedAttributes);
 				});
 			}
+			return this;
 		}
 	};
 
@@ -93,7 +97,7 @@ component {
 		_silent: {},
 		_pending: {},
 		changed: {},
-		listeners: {},
+		_callbacks: {},
 		idAttribute: 'id',
 		extend: function (struct properties = {}) {
 			return function (struct attributes = {}, struct options = {}) {
@@ -329,7 +333,12 @@ component {
 		},
 		get: function (required string id) {
 			return _.find(this.models, function(model) {
-				return _.has(model, 'id') && model.id == id;
+				if (model.idAttribute != 'id') {
+					return model.get(model.idAttribute) == id;
+				}
+				else {
+					return _.has(model, 'id') && model.id == id;
+				}
 			});
 		},
 		getByCid: function (required string cid) {
@@ -364,8 +373,11 @@ component {
 			return _.size(this.models);
 		},
 		sort: function (struct options = {}) {
-			if (_.has(this, 'comparator'))
-				this.models = _.sortBy(this.models, this.comparator);
+			if (_.has(this, 'comparator')) {
+				var Underscore = duplicate(_);
+				Underscore.comparison = this.comparator;
+				this.models = Underscore.sortBy(this.models);
+			}
 			else 
 				throw('Cannot sort a set without a comparator', 'Backbone');
 			// TODO: options and "reset" event
