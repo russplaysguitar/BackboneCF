@@ -169,6 +169,15 @@ component {
 			this.changedAttributes.changes[key] = true;
 			this.change(this, val, this.changedAttributes);
 			if (this.idAttribute == key) {
+				if (_.has(this, 'collection')) {
+					// update collection
+					var oldKey = this[key];
+					var collection = this.collection();
+					if (_.has(collection, '_byId')) {
+						StructDelete(collection._byId, oldKey);
+						collection._byId[val] = this;
+					}
+				}
 				this[key] = val;
 			}
 			else {
@@ -273,6 +282,7 @@ component {
 		initialize: function () {},
 		Model: Backbone.Model.extend(),
 		models: [],
+		length: 0,
 		extend: function (struct properties = {}) {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
@@ -320,39 +330,118 @@ component {
 			});
 			return result;
 		},
-		add: function (array models = [], struct options = {}) {
-			_.each(models, function(model) {
-				var backboneModel = this._prepareModel(model);
-				if (!isStruct(backboneModel)) {
-					throw("Can't add an invalid model to a collection", 'Backbone');
+		add: function (any models = [], struct options = {}) {
+			// TODO test this method
+			var dups = [];
+			var cids = {};
+			var ids = {};
+			if (!isArray(arguments.models)) {
+				arguments.models = _.toArray(models);
+			}
+			for (var i = 1; i <= arrayLen(models); i++) {
+				model = models[i];
+				var model = this._prepareModel(model);
+				if (!isStruct(model)) {
+					throw("Can't add an invalid model to a collection", "Backbone");
 				}
-				ArrayAppend(this.models, backboneModel);
-				// TODO: remove duplicates
-				// TODO: resort collection if needed 				
-				// TODO: handle options and events
-			});
+				models[i] = model;
+				var cid = model.cid;
+				if (_.has(model, 'id')) 
+					var id = model.id;
+ 		        if (_.has(cids, cid) || _.has(this._byCid, cid) || (
+		        	(!isNull(id) && (_.has(ids, id) || _.has(this._byId, id))))) {
+					ArrayAppend(dups, i);
+					continue;
+		        }
+		        cids[cid] = model;
+		        if (!isNull(id))
+			        ids[id] = model;
+			}
+
+			// Remove duplicates.
+			var i = ArrayLen(dups);
+			while (i--) {
+				ArrayDeleteAt(models, dups[i]);
+			}
+
+			// Listen to added models' events, and index models for lookup by id and by cid.
+			for (i = 1; i <= arrayLen(models); i++) {
+				var model = models[i];
+				model.on('all', this._onModelEvent, this);
+				this._byCid[model.cid] = model;
+				if (_.has(model, 'id')) 
+					this._byId[model.id] = model;
+			}
+
+			// Insert models into the collection, re-sorting if needed, and triggering add events unless silenced.
+			this.length += arrayLen(models);
+			var index = _.has(options, 'at') ? options.at : arrayLen(this.models);
+			ArrayAppend(this.models, models, true);
+			if (_.has(this, 'comparator')) 
+				this.sort({silent: true});
+			if (_.has(options, 'silent') && options.silent) 
+				return this;
+			for (i = 1; i <= arrayLen(this.models); i++) {
+				var model = this.models[i];
+				if (_.has(model, cid) && !_.has(cids, model.cid))
+					continue;
+				options.index = i;
+				// model.trigger('add', model, this, options);
+			}
+			return this;			
+			// ArrayAppend(this.models, backboneModel);
 		},
-		remove: function (array models = [], struct options = {}) {
-			this.models = _.without(this.models, models);
-			// TODO: events
+		remove: function(any models = [], struct options = {}) {
+			arguments.models = _.isArray(models) ? models : [models];
+			for (var i = 1; i <= ArrayLen(models); i++) {
+				if (!isNull(this.getByCid(models[i])))
+					var model = this.getByCid(models[i]);
+				else if (!isNull(this.get(models[i])))
+					var model = this.get(models[i]);
+				if (isNull(model)) 
+					continue;
+				if (_.has(model, 'id'))
+					StructDelete(this._byId, model.id);	
+				this.length--;
+				if (_.has(options, 'silent') && options.silent) {
+					options.index = this.indexOf(model);
+					model.trigger('remove', model, this, options);
+				}
+				this._removeReference(model);
+			}
+			return this;
 		},
-		get: function (required string id) {
-			return _.find(this.models, function(model) {
-				return model[model.idAttribute] == id;
-			});
+		get: function (required any id) {
+			if (isStruct(arguments.id) && _.has(arguments.id, 'id')) {
+				return this._byId[arguments.id.id];
+			}
+			else if (isSimpleValue(arguments.id) && _.has(this._byId, arguments.id)) {
+				// writeDump(this._byId[arguments.id]);
+				return this._byId[arguments.id];
+			}
+			else {
+				writeDump(arguments);
+				throw("Collection does not have model with specified ID " & id, "Backbone");
+			}
 		},
-		getByCid: function (required string cid) {
-			return _.find(this.models, function(model) {
-				return model.cid == cid;
-			});
+		getByCid: function (required any cid) {
+			if (isStruct(arguments.cid) && _.has(cid, 'cid')) {
+				return this._byCid[arguments.cid.cid];
+			}
+			else if (isSimpleValue(arguments.cid) && _.has(this._byCid, arguments.cid)) {
+				return this._byCid[arguments.cid];
+			}
+			else {
+				throw("getByCid() requires either a struct with a cid attribute or a cid string.", "Backbone");
+			}
 		},
 		at: function (required numeric index) {
 			return this.models[index];
 		},
 		push: function (required struct model, struct options = {}) {
-			var backboneModel = this._prepareModel(model);
-			this.add([backboneModel], options);
-			return backboneModel;
+			arguments.model = this._prepareModel(arguments.model, options);
+			this.add([arguments.model], options);
+			return arguments.model;
 		},
 		pop: function (struct options = {}) {
 			var result = _.last(this.models);
@@ -368,9 +457,6 @@ component {
 			this.remove([result]);
 			return result;
 			// TODO: options
-		},
-		length: function () {
-			return _.size(this.models);
 		},
 		sort: function (struct options = {}) {
 			if (_.has(this, 'comparator')) {
@@ -412,9 +498,14 @@ component {
 			var result = Backbone.Sync('read', collection, options);
 		},
 		reset: function (array models = [], struct options = {}) {
+			for (var i = 1; i <= ArrayLen(this.models); i++) {
+				this._removeReference(this.models[i]);
+			}
 			this._reset();
-			this.add(models);
-			// TODO: options and events
+			this.add(models, _.extend({silent: true}, options));
+			if (_.has(options, 'silent') && !options.silent) 
+				this.trigger('reset', this, options);
+			return this;
 		},
 		_reset: function(struct options = {}) {
 			this.models = [];
@@ -426,16 +517,36 @@ component {
 			// TODO: improve model check to ensure correct type of model
 			if (!(_.has(model, 'cid'))) {
 				var attrs = model;
-				//options.collection = this;
+				options.collection = _.bind(function () { return this; }, this);
 				model = this.Model(attrs, options);
 				if (!model._validate(model.attributes, options)) 
 					model = false;
 			} 
 			else if (!_.has(model, 'collection')) {
-				//model.collection = this;
+				model.collection = _.bind(function () { return this; }, this);
 			}
 			return model;
 	    },
+	    // Internal method to remove a model's ties to a collection.
+	    _removeReference: function(required model) {
+			if (_.has(model, 'collection') && _.isEqual(this, model.collection)) {
+				structDelete(model, 'collection');
+			}
+			model.off('all', this._onModelEvent, this);
+		},
+		// Internal method called every time a model in the set fires an event. Sets need to update their indexes when models change ids. All other events simply proxy through. "add" and "remove" events that originate in other collections are ignored.
+		_onModelEvent: function(required string event, required struct model, required struct collection, options = {}) {
+			if ((event == 'add' || event == 'remove') && !_.isEqual(collection, this)) 
+				return;
+			if (event == 'destroy') {
+				this.remove(model, options);
+			}
+			if (model && event == 'change:' + model.idAttribute) {
+				StructDelete(this._byId, model.previous(model.idAttribute));
+				this._byId[model.id] = model;
+			}
+			this.trigger.apply(this, arguments);
+		},
 		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);
 			this.add([newModel]);
@@ -444,9 +555,6 @@ component {
 		},
 		parse: function(resp, xhr) {
 			return resp;
-		},
-		length: function () {
-			return _.size(this.models);
 		}
 	};
 

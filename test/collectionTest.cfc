@@ -18,7 +18,7 @@ component extends="mxunit.framework.TestCase" {
 		col.sort();
 		assertEquals(col.first(), d, "d should be first");
 		assertEquals(col.last(), a, "a should be last");
-		assertEquals(col.length(), 4);
+		assertEquals(col.length, 4);
 	}
 
 	public void function getAndGetByCid() {
