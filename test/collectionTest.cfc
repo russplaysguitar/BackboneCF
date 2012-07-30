@@ -28,8 +28,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function getWithNonDefaultIds() {
-		var MyCol = Backbone.Collection.extend();
-		var col = MyCol();
+		var col = Backbone.Collection.new();
 	    var MongoModel = Backbone.Model.extend({
 	      idAttribute: '_id'
 	    });
@@ -41,8 +40,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function updateIndexWhenIdChanges() {
-		var MyCol = Backbone.Collection.extend();
-		var col = MyCol();
+		var col = Backbone.Collection.new();
 		col.add([
 		  {id : 0, name : 'one'},
 		  {id : 1, name : 'two'}
@@ -62,15 +60,14 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function testAdd() {
-	    var EModel = Backbone.Model.extend();
-	    var e = EModel({id: 10, label : 'e'});
+	    var e = Backbone.Model.new({id: 10, label : 'e'});
 	    otherCol.add(e);
 	    otherCol.on('add', function() {
 			secondAdded = true;
 	    });
 	    col.on('add', function(model, collection, options){
 			added = model.get('label');
-			// assertEquals(options.index, 5);
+			// assertEquals(options.index, 5);//todo: get this fixed
 			opts = options;
 	    });
 	    col.add(e, {amazing: true});
@@ -93,20 +90,26 @@ component extends="mxunit.framework.TestCase" {
 	    assertTrue(_.isEqual(atCol.last(), h));
 	}
 	
+	public void function addMultipleModels() {
+		var col = Backbone.Collection.new([{at: 1}, {at: 2}, {at: 9}]);
+	    col.add([{at: 3}, {at: 4}, {at: 5}, {at: 6}, {at: 7}, {at: 8}, {at: 9}], {at: 3});
+	    for (i = 1; i <= 6; i++) {
+			assertEquals(col.at(i).get('at'), i);
+	    }	
+	}
+	
 	
 	
 	
 
 	public void function setUp() {
 		variables.Backbone  = new backbone.Backbone();
-		variables.MyModel   = Backbone.Model.extend();
-		variables.a         = variables.MyModel({id: 3, label: 'a'});
-		variables.b         = variables.MyModel({id: 2, label: 'b'});
-		variables.c         = variables.MyModel({id: 1, label: 'c'});
-		variables.d         = variables.MyModel({id: 0, label: 'd'});
-		variables.MyCol		= Backbone.Collection.extend();
-		variables.col       = variables.MyCol([a,b,c,d]);
-		variables.otherCol  = variables.MyCol();
+		variables.a         = Backbone.Model.new({id: 3, label: 'a'});
+		variables.b         = Backbone.Model.new({id: 2, label: 'b'});
+		variables.c         = Backbone.Model.new({id: 1, label: 'c'});
+		variables.d         = Backbone.Model.new({id: 0, label: 'd'});
+		variables.col       = Backbone.Collection.new([a,b,c,d]);
+		variables.otherCol  = Backbone.Collection.new();
 
 		Backbone.sync = function(method, model, options) {
 			lastRequest = {

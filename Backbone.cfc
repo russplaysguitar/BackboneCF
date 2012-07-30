@@ -99,6 +99,11 @@ component {
 		_pending: {},
 		changed: {},
 		idAttribute: 'id',
+		new: function (struct attributes = {}, struct options = {}) {
+			// convenience method. equivalent to: new Backbone.Model(); in BackboneJS
+			var BackboneModel = Backbone.Model.extend();
+			return BackboneModel(attributes, options);
+		},
 		extend: function (struct properties = {}) {
 			return function (struct attributes = {}, struct options = {}) {
 				var Model = duplicate(Backbone.Model);
@@ -283,6 +288,11 @@ component {
 		Model: Backbone.Model.extend(),
 		models: [],
 		length: 0,
+		new: function (array models = [], options = {}) {
+			// convenience method, equivalent to: new Backbone.Collection(models, options) in BackboneJS
+			var NewCollection = Backbone.Collection.extend();
+			return NewCollection(models, options);
+		},
 		extend: function (struct properties = {}) {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
@@ -315,12 +325,14 @@ component {
 				Collection.models = models;
 
 				Collection.initialize(argumentCollection = arguments);
+				
 
 				if (_.size(models) > 0) {
 					options.parse = _.has(options, 'parse') ? options.parse : Collection.parse;
 					Collection.reset(models, {silent: true, parse: options.parse});
 				}
 
+				
 				return Collection;
 			};
 		},
@@ -539,7 +551,8 @@ component {
 			if (_.has(model, 'collection') && _.isEqual(this, model.collection)) {
 				structDelete(model, 'collection');
 			}
-			model.off('all', this._onModelEvent, this);
+			if (_.has(model, 'off'))
+				model.off('all', this._onModelEvent, this);
 		},
 		// Internal method called every time a model in the set fires an event. Sets need to update their indexes when models change ids. All other events simply proxy through. "add" and "remove" events that originate in other collections are ignored.
 		_onModelEvent: function(required string event, required struct model, required struct collection, options = {}) {
