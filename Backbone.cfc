@@ -14,6 +14,7 @@ component {
 	};
 
 	Backbone.Events = {
+		_callbacks: {},
 		on: function (required string eventName, required callback, context = {}) {
 			var event = listFirst(eventName, ":");
 			var attribute = listLast(eventName, ":");
@@ -97,7 +98,6 @@ component {
 		_silent: {},
 		_pending: {},
 		changed: {},
-		_callbacks: {},
 		idAttribute: 'id',
 		extend: function (struct properties = {}) {
 			return function (struct attributes = {}, struct options = {}) {
@@ -335,6 +335,13 @@ component {
 			var dups = [];
 			var cids = {};
 			var ids = {};
+			if (isStruct(models)) {
+				// wrap non-array model input in an array
+				arguments.models = [arguments.models];
+			}
+			if (_.isFunction(models)) {
+				arguments.models = [models()];
+			}
 			if (!isArray(arguments.models)) {
 				arguments.models = _.toArray(models);
 			}
@@ -375,18 +382,18 @@ component {
 
 			// Insert models into the collection, re-sorting if needed, and triggering add events unless silenced.
 			this.length += arrayLen(models);
-			var index = _.has(options, 'at') ? options.at : arrayLen(this.models);
-			ArrayAppend(this.models, models, true);
+			var index = _.has(options, 'at') ? options.at : arrayLen(this.models) + 1;
+			this.models = _.splice(this.models, index, 0, models);
 			if (_.has(this, 'comparator')) 
 				this.sort({silent: true});
 			if (_.has(options, 'silent') && options.silent) 
 				return this;
 			for (i = 1; i <= arrayLen(this.models); i++) {
 				var model = this.models[i];
-				if (_.has(model, cid) && !_.has(cids, model.cid))
+				if (!_.has(cids, model.cid)) 
 					continue;
 				options.index = i;
-				// model.trigger('add', model, this, options);
+				model.trigger('add', model, this, options);
 			}
 			return this;			
 			// ArrayAppend(this.models, backboneModel);
@@ -468,7 +475,7 @@ component {
 				throw('Cannot sort a set without a comparator', 'Backbone');
 			// TODO: options and "reset" event
 		},
-		pluck: function (required struct attribute) {
+		pluck: function (required string attribute) {
 			return _.map(this.models, function(model) {
 				return model.get(attribute);				
 			});
