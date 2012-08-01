@@ -15,7 +15,27 @@ component {
 
 	Backbone.Events = {
 		_callbacks: {},
-		on: function (required string eventName, required callback, context = {}) {
+		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
+		on: function (events, callback, context) {
+			// var calls, event, node, tail, list;
+			if (!_.has(arguments, 'callback')) return this;
+			var events = listToArray(events);
+
+			// Create a callback list
+			for (var event in events) {
+				var eventInCallbacks = _.has(this._callbacks, event);
+				var list = eventInCallbacks ? this._callbacks[event] : {};
+				var node = _.has(list, 'tail') ? list.tail : {};
+				var tail = {};
+				node.next = tail;
+				node.context = _.has(arguments, 'context') ? context : {};
+				node.callback = _.has(arguments, 'callback') ? callback : function () {};
+				this._callbacks[event] = {tail: tail, next: eventInCallbacks ? list.next : node};
+			}
+
+			return this;
+		},
+		on_old: function (required string eventName, required callback, context = {}) {
 			var event = listFirst(eventName, ":");
 			var attribute = listLast(eventName, ":");
 
@@ -30,18 +50,85 @@ component {
 
 			return this;
 		},
-		off: function (required string eventName, callback, context) {
+		// Remove one or many callbacks. If context is null, removes all callbacks with that function. If callback is null, removes all callbacks for the event. If events is null, removes all bound callbacks for all events.
+		off: function (events, callback, context) {
+			if (_.isEmpty(this._callbacks)) return;
+			if (!(_.has(arguments, 'events') || _.has(arguments, 'callback') || _.has(arguments, 'context'))) {
+				return this;
+			}
+
+			// Loop through the listed events and contexts, splicing them out of the linked list of callbacks if appropriate.
+			var events = _.has(arguments, 'events') ? listToArray(events) : _.keys(this._callbacks);
+			for (var event in events) {
+				if (!_.has(calls, event) || !(_.has(arguments, 'callback') || _.has(arguments, 'context'))) continue;
+				var node = calls[event];
+				structDelete(calls, event);
+				var tail = node.tail;
+				while (!_.isEqual(node.next,  tail)) {
+					node = node.next;
+					cb = node.callback;
+					ctx = node.context;
+					if ((callback && cb !== callback) || (context && ctx !== context)) {
+						this.on(event, cb, ctx);
+					}
+				}
+			}
+
+			return this;
+		},
+		off_old: function (required string eventName, callback, context) {
 			if (_.has(this._callbacks, eventName)) {
 				structDelete(this._callbacks, eventName);
 			}
 			return this;
 		},
-		trigger: function (required string eventName, struct model, val, struct changedAttributes) {
+		// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
+		trigger: function (events) {
+			if (_.isEmpty(this._callbacks)) return this;
+			var calls = this._callbacks;
+			arguments.events = listToArray(events);
+			var rest = _.slice(arguments, 1);
+
+			// For each event, walk through the linked list of callbacks twice, first to trigger the event, then to trigger any "all" callbacks.
+			for (var event in events) {
+				var node = false;
+				var tail = false;
+				if (_.has(calls, event)) {
+					node = calls[event];
+					tail = node.tail;
+					while (!_.isEqual(node.next, tail)) {
+						node = node.next;
+						if (_.has(node, 'context'))
+							node.callback(node.context);
+						else
+							node.callback(this, rest);
+					}
+				}
+				if (_.has(calls, 'all')) {
+					node = calls.all;
+					tail = node.tail;
+					var args = ArrayAppend([event], rest, true);
+					while (!_.isEqual(node.next, tail)) {
+						node = node.next;
+						node.callback.apply(node.context || this, args);
+					}
+				}
+			}
+
+			return this;			
+		},
+		trigger_old: function (required string eventName, struct model, val, struct changedAttributes = {}) {
 			// TODO: handle list of events
 			if (_.has(this._callbacks, eventName)) {
 				var funcsArray = this._callbacks[eventName];
 				_.each(funcsArray, function (func) {
 					func(model, val, changedAttributes);
+				});
+			}
+			if (_.has(this._callbacks, 'all')) {
+				var funcsArray = this._callbacks['all'];
+				_.each(funcsArray, function (func) {
+					func(eventName, model, val, changedAttributes);
 				});
 			}
 			return this;
@@ -95,8 +182,10 @@ component {
 		changedAttributes: {
 			changes: {}
 		},
+		_escapedAttributes: {},
 		_silent: {},
 		_pending: {},
+		_changing: false,
 		changed: {},
 		idAttribute: 'id',
 		new: function (struct attributes = {}, struct options = {}) {
@@ -121,16 +210,16 @@ component {
 
 				_.bindAll(Model);
 
-				if (_.has(attributes, 'id')) {
-					Model.id = attributes.id;
-					structDelete(attributes, 'id');
-				}
+				// if (_.has(attributes, 'id')) {
+				// 	Model.id = attributes.id;
+				// 	structDelete(attributes, 'id');
+				// }
 
-				if (_.has(attributes, Model.idAttribute)) {
-					Model.id = attributes[Model.idAttribute];
-				}				
+				// if (_.has(attributes, Model.idAttribute)) {
+				// 	Model.id = attributes[Model.idAttribute];
+				// }				
 
-				Model.setMultiple(arguments.attributes, {silent: true});
+				Model.set(arguments.attributes, {silent: true});
 
 				Model._previousAttributes = _.clone(arguments.attributes);
 
@@ -148,47 +237,67 @@ component {
 		escape: function (attr) {
 			return _.escape(this.get(attr));
 		},
-		setMultiple: function (required struct attributes, struct options = {}) {
-			// TODO: use Set() instead
-			// TODO: handle options
-
-			if (!this._validate(attributes, options))
-				return false;
-
-			_.each(attributes, function(val, key) {
-				this.set(key, val, options);
-			});
-
-			return true;
-		},
-		set: function (required string key, required val, struct options = {}) {
-			// TODO: handle collection
-			// TODO: handle silent option
-			// TODO: set up "changed" struct (see backbone.js Model.changed)
-			var newAttributes = duplicate(this.attributes);
-			newAttributes[key] = val;
-			var isValid = this._validate(newAttributes, options);
-			if (!isValid) {
-				return false;
+		set: function (required any key, value = {}, struct options = {}) {
+			// Handle both "key", value and {key: value} -style arguments.
+			if (isStruct(key)) {
+				var attrs = key;
+				arguments.options = arguments.value;
+			} else {
+				var attrs = {};
+				attrs[key] = arguments.value;
 			}
-			this.changedAttributes.changes[key] = true;
-			this.change(this, val, this.changedAttributes);
-			if (this.idAttribute == key) {
-				if (_.has(this, 'collection')) {
-					// update collection
-					var oldKey = this[key];
-					var collection = this.collection();
-					if (_.has(collection, '_byId')) {
-						StructDelete(collection._byId, oldKey);
-						collection._byId[val] = this;
-					}
+
+			// Extract attributes and options.
+			options.unset = _.has(options, 'unset') ? options.unset : false;
+			options.silent = _.has(options, 'silent') ? options.silent : false;
+			if (_.has(attrs, 'cid')) attrs = attrs.attributes;// attrs is a Backbone Model already
+			if (options.unset) for (attr in attrs) structDelete(attrs, attr);
+
+			// Run validation
+			if (!this._validate(attrs, options)) return false;
+
+			// Check for changes of id.
+			if (_.has(attrs, this.idAttribute)) this.id = attrs[this.idAttribute];
+
+			options.changes = _.has(options, 'changes') ? options.changes : {};
+			var now = this.attributes;
+			var escaped = this._escapedAttributes;
+			var prev = _.has(this, '_previousAttributes') ? this._previousAttributes : {};
+
+			for (attr in attrs) {
+		        val = attrs[attr];
+
+		        // If the new and current value differ, record the change.
+		        if ((_.has(now, attr) && !_.isEqual(now[attr], val)) || (options.unset && _.has(now, attr))) {
+					structDelete(escaped, attr);
+					if (options.silent)
+						this._silent[attr] = true; 
+					else
+						options.changes[attr] = true;
 				}
-				this[key] = val;
+
+				// Update or delete the current value.
+				if (options.unset) 
+					structDelete(now, attr); 
+				else 
+					now[attr] = val;
+
+				// If the new and previous value differ, record the change. If not, then remove changes for this attribute.
+				if ((_.has(prev, attr) && !_.isEqual(prev[attr], val)) || (_.has(now, attr) != _.has(prev, attr))) {
+					this.changed[attr] = val;
+				
+				if (!options.silent) 
+					this._pending[attr] = true;
+				} else {
+					structDelete(this.changed, attr);
+					structDelete(this._pending, attr);
+				}
 			}
-			else {
-				this.attributes[key] = val;
-			}
-			return true;
+			
+			// Fire the "change" events.
+			if (!options.silent) this.change(options);
+			
+			return this;		
 		},
 		has: function (required string attribute) {
 			return _.has(this.attributes, attribute);
@@ -235,11 +344,40 @@ component {
 		previousAttributes: function() {
 			return _.clone(this._previousAttributes);
 	    },
-		change: function (required struct model, required val, struct changedAttributes) {
-			_.each(changedAttributes.changes, function (v, k) {
-				var eventName = 'change:' & k;
-				this.trigger(eventName, model, val, changedAttributes);
-			});
+	    // Call this method to manually fire a "change" event for this model and a "change:attribute" 
+	    //  event for each changed attribute. Calling this will cause all objects observing the model to update.
+		change: function (options = {}) {
+			var changing = this._changing;
+			this._changing = true;
+
+			options.changes = _.has(options, 'changes') ? options.changes : {};
+
+			// Silent changes become pending changes.
+			for (var attr in this._silent) this._pending[attr] = true;
+
+			// Silent changes are triggered.
+			var changes = _.extend({}, options.changes, this._silent);
+			this._silent = {};
+			for (var attr in changes) {
+				this.trigger('change:' & attr, this, this.get(attr), options);
+			}
+			if (changing) return this;	
+
+			// Continue firing "change" events while there are pending changes.		
+			while (!_.isEmpty(this._pending)) {
+				this._pending = {};
+				this.trigger('change', this, options);
+
+				// Pending and silent changes still remain.
+				for (var attr in this.changed) {
+					if (_.has(this._pending, attr) || _.has(this._silent, attr)) continue;
+					structDelete(this.changed, attr);
+				}
+				this._previousAttributes = _.clone(this.attributes);
+			}
+
+			this._changing = false;
+			return this;
 		},
 		toJSON: function () {
 			return serializeJSON(this.attributes);
@@ -257,7 +395,7 @@ component {
 				options.success = function () {};
 			var success = options.success;
 			options.success = function(resp, status, xhr) {
-				if (!model.setMultiple(model.parse(resp, xhr), options)) 
+				if (!model.set(model.parse(resp, xhr), options)) 
 					return false;
 				success(model, resp);
 			};
@@ -435,11 +573,9 @@ component {
 				return this._byId[arguments.id.id];
 			}
 			else if (isSimpleValue(arguments.id) && _.has(this._byId, arguments.id)) {
-				// writeDump(this._byId[arguments.id]);
 				return this._byId[arguments.id];
 			}
 			else {
-				writeDump(arguments);
 				throw("Collection does not have model with specified ID " & id, "Backbone");
 			}
 		},
@@ -555,17 +691,17 @@ component {
 				model.off('all', this._onModelEvent, this);
 		},
 		// Internal method called every time a model in the set fires an event. Sets need to update their indexes when models change ids. All other events simply proxy through. "add" and "remove" events that originate in other collections are ignored.
-		_onModelEvent: function(required string event, required struct model, required struct collection, options = {}) {
-			if ((event == 'add' || event == 'remove') && !_.isEqual(collection, this)) 
+		_onModelEvent: function(required string eventName, required struct model, required struct collection, options = {}) {
+			if ((eventName == 'add' || eventName == 'remove') && !_.isEqual(collection, this)) 
 				return;
-			if (event == 'destroy') {
+			if (eventName == 'destroy') {
 				this.remove(model, options);
 			}
-			if (model && event == 'change:' + model.idAttribute) {
+			if (eventName == 'change:' & model.idAttribute) {
 				StructDelete(this._byId, model.previous(model.idAttribute));
 				this._byId[model.id] = model;
 			}
-			this.trigger.apply(this, arguments);
+			this.trigger(argumentCollection = arguments);
 		},
 		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);

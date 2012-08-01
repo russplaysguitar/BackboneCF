@@ -35,7 +35,7 @@ component extends="mxunit.framework.TestCase" {
 	    var model = MongoModel({_id: 100});
 	    col.push(model);
 	    assertEquals(col.get(100), model);
-	    model.setMultiple({_id: 101});
+	    model.set({_id: 101});
 	    assertEquals(col.get(101), model);
 	}
 
@@ -47,7 +47,7 @@ component extends="mxunit.framework.TestCase" {
 		]);
 		var one = col.get(0);
 		assertEquals(one.get('name'), 'one');
-		one.setMultiple({id : 101});
+		one.set({id : 101});
 		assertEquals(col.get(101).get('name'), 'one');
 	}
 	
@@ -97,6 +97,20 @@ component extends="mxunit.framework.TestCase" {
 			assertEquals(col.at(i).get('at'), i);
 	    }	
 	}
+	
+	public void function add_AtShouldHavePreferenceOverComparator() {
+		var Col = Backbone.Collection.extend({
+			comparator: function(a,b) {
+				return a.id > b.id ? -1 : 1;
+			}
+		});
+
+		var col = Col([{id: 2}, {id: 3}]);
+		col.add(Backbone.Model.new({id: 1}), {at: 1});
+
+		assertEquals(col.pluck('id'), [3, 1, 2]);
+	}
+	
 	
 	
 	
