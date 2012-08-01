@@ -16,28 +16,7 @@ component {
 	Backbone.Events = {
 		_callbacks: {},
 		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
-		on: function (events, callback, context) {
-			// var calls, event, node, tail, list;
-			if (!_.has(arguments, 'callback')) return this;
-			var events = listToArray(events);
-
-			// Create a callback list
-			for (var event in events) {
-				var eventInCallbacks = _.has(this._callbacks, event);
-				var list = eventInCallbacks ? this._callbacks[event] : {};
-				var node = _.has(list, 'tail') ? list.tail : {};
-				var tail = {};
-				node.next = tail;
-				node.context = _.has(arguments, 'context') ? context : {};
-				node.callback = _.has(arguments, 'callback') ? callback : function () {};
-				this._callbacks[event] = {tail: tail, next: eventInCallbacks ? list.next : node};
-			}
-
-			return this;
-		},
-		on_old: function (required string eventName, required callback, context = {}) {
-			var event = listFirst(eventName, ":");
-			var attribute = listLast(eventName, ":");
+		on: function (required string eventName, required callback, context = {}) {
 
 			if (!_.has(this._callbacks, eventName))
 				this._callbacks[eventName] = [];
@@ -51,81 +30,22 @@ component {
 			return this;
 		},
 		// Remove one or many callbacks. If context is null, removes all callbacks with that function. If callback is null, removes all callbacks for the event. If events is null, removes all bound callbacks for all events.
-		off: function (events, callback, context) {
-			if (_.isEmpty(this._callbacks)) return;
-			if (!(_.has(arguments, 'events') || _.has(arguments, 'callback') || _.has(arguments, 'context'))) {
-				return this;
-			}
-
-			// Loop through the listed events and contexts, splicing them out of the linked list of callbacks if appropriate.
-			var events = _.has(arguments, 'events') ? listToArray(events) : _.keys(this._callbacks);
-			for (var event in events) {
-				if (!_.has(calls, event) || !(_.has(arguments, 'callback') || _.has(arguments, 'context'))) continue;
-				var node = calls[event];
-				structDelete(calls, event);
-				var tail = node.tail;
-				while (!_.isEqual(node.next,  tail)) {
-					node = node.next;
-					cb = node.callback;
-					ctx = node.context;
-					if ((callback && cb !== callback) || (context && ctx !== context)) {
-						this.on(event, cb, ctx);
-					}
-				}
-			}
-
-			return this;
-		},
-		off_old: function (required string eventName, callback, context) {
+		off: function (required string eventName, callback, context) {
 			if (_.has(this._callbacks, eventName)) {
 				structDelete(this._callbacks, eventName);
 			}
 			return this;
 		},
 		// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
-		trigger: function (events) {
-			if (_.isEmpty(this._callbacks)) return this;
-			var calls = this._callbacks;
-			arguments.events = listToArray(events);
-			var rest = _.slice(arguments, 1);
-
-			// For each event, walk through the linked list of callbacks twice, first to trigger the event, then to trigger any "all" callbacks.
-			for (var event in events) {
-				var node = false;
-				var tail = false;
-				if (_.has(calls, event)) {
-					node = calls[event];
-					tail = node.tail;
-					while (!_.isEqual(node.next, tail)) {
-						node = node.next;
-						if (_.has(node, 'context'))
-							node.callback(node.context);
-						else
-							node.callback(this, rest);
-					}
-				}
-				if (_.has(calls, 'all')) {
-					node = calls.all;
-					tail = node.tail;
-					var args = ArrayAppend([event], rest, true);
-					while (!_.isEqual(node.next, tail)) {
-						node = node.next;
-						node.callback.apply(node.context || this, args);
-					}
-				}
-			}
-
-			return this;			
-		},
-		trigger_old: function (required string eventName, struct model, val, struct changedAttributes = {}) {
+		trigger: function (required string eventName, struct model, val, struct changedAttributes = {}) {
 			// TODO: handle list of events
-			if (_.has(this._callbacks, eventName)) {
+			if (_.has(this._callbacks, eventName) && eventName != 'all') {
 				var funcsArray = this._callbacks[eventName];
 				_.each(funcsArray, function (func) {
 					func(model, val, changedAttributes);
 				});
 			}
-			if (_.has(this._callbacks, 'all')) {
+			if (_.has(this._callbacks, 'all') && eventName != 'all') {
 				var funcsArray = this._callbacks['all'];
 				_.each(funcsArray, function (func) {
 					func(eventName, model, val, changedAttributes);
@@ -691,9 +611,12 @@ component {
 				model.off('all', this._onModelEvent, this);
 		},
 		// Internal method called every time a model in the set fires an event. Sets need to update their indexes when models change ids. All other events simply proxy through. "add" and "remove" events that originate in other collections are ignored.
-		_onModelEvent: function(required string eventName, required struct model, required struct collection, options = {}) {
-			if ((eventName == 'add' || eventName == 'remove') && !_.isEqual(collection, this)) 
-				return;
+		_onModelEvent: function(required string eventName, required struct model, collection, options = {}) {
+			if ((eventName == 'add' || eventName == 'remove')) {
+				var isEq = _.has(arguments, 'collection') && _.has(collection, 'toJSON') && _.isEqual(collection.toJSON(), this.toJSON());
+				if (!isEq)
+					return;
+			}
 			if (eventName == 'destroy') {
 				this.remove(model, options);
 			}
@@ -701,7 +624,8 @@ component {
 				StructDelete(this._byId, model.previous(model.idAttribute));
 				this._byId[model.id] = model;
 			}
-			this.trigger(argumentCollection = arguments);
+			// the next line causes an infinite loop. don't do it!
+			// this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection});
 		},
 		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);
