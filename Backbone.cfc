@@ -454,7 +454,7 @@ component {
 			this.length += arrayLen(models);
 			var index = _.has(options, 'at') ? options.at : arrayLen(this.models) + 1;
 			this.models = _.splice(this.models, index, 0, models);
-			if (_.has(this, 'comparator')) 
+			if (_.has(this, 'comparator') && !_.has(options, 'at')) 
 				this.sort({silent: true});
 			if (_.has(options, 'silent') && options.silent) 
 				return this;

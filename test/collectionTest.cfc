@@ -106,7 +106,7 @@ component extends="mxunit.framework.TestCase" {
 		});
 
 		var col = Col([{id: 2}, {id: 3}]);
-		col.add(Backbone.Model.new({id: 1}), {at: 1});
+		col.add(Backbone.Model.new({id: 1}), {at: 2});
 
 		assertEquals(col.pluck('id'), [3, 1, 2]);
 	}
