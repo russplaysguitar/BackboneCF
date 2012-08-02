@@ -436,9 +436,9 @@ component {
 			}
 
 			// Remove duplicates.
-			var i = ArrayLen(dups);
-			while (i--) {
-				ArrayDeleteAt(models, dups[i]);
+			var i = ArrayLen(dups) + 1;
+			while (i-- > 1) {
+				models = _.splice(models, dups[i], 1);
 			}
 
 			// Listen to added models' events, and index models for lookup by id and by cid.

@@ -111,6 +111,12 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(col.pluck('id'), [3, 1, 2]);
 	}
 	
+	public void function collection_cantAddModelToCollectionTwice() {
+		var col = Backbone.Collection.new([{id: 1}, {id: 2}, {id: 1}, {id: 2}, {id: 3}]);
+	    assertEquals(col.pluck('id'), [1, 2, 3]);
+	}
+	
+	
 	
 	
 	
