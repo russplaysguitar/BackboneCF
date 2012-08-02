@@ -440,7 +440,6 @@ component {
 			while (i-- > 1) {
 				models = _.splice(models, dups[i], 1);
 			}
-
 			// Listen to added models' events, and index models for lookup by id and by cid.
 			for (i = 1; i <= arrayLen(models); i++) {
 				var model = models[i];
@@ -460,6 +459,7 @@ component {
 				return this;
 			for (i = 1; i <= arrayLen(this.models); i++) {
 				var model = this.models[i];
+				writeDump(model);
 				if (!_.has(cids, model.cid)) 
 					continue;
 				options.index = i;
@@ -514,8 +514,7 @@ component {
 			return this.models[index];
 		},
 		push: function (required struct model, struct options = {}) {
-			arguments.model = this._prepareModel(arguments.model, options);
-			this.add([arguments.model], options);
+			this.add(arguments.model, options);
 			return arguments.model;
 		},
 		pop: function (struct options = {}) {
@@ -524,8 +523,9 @@ component {
 			return result;
 		},
 		unshift: function (required struct model, struct options = {}) {
-			ArrayPrepend(this.models, model);
-			// TODO: events and options
+			arguments.model = this._prepareModel(arguments.model, options);
+			this.add(arguments.model, _.extend({at: 1}, options));
+			return model;
 		},
 		shift: function (struct options = {}) {
 			var result = _.first(this.models);
