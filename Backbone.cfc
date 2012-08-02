@@ -126,7 +126,7 @@ component {
 			    if (_.has(options, 'collection')) 
 			   		Model.collection = options.collection;
 
-				_.extend(Model, Backbone.Events);
+				_.extend(Model, duplicate(Backbone.Events));
 
 				_.bindAll(Model);
 
@@ -357,7 +357,7 @@ component {
 
 				_.extend(Collection, properties);
 
-				_.extend(Collection, Backbone.Events);
+				_.extend(Collection, duplicate(Backbone.Events));
 
 				if (_.has(options, 'comparator')) 
 					Collection.comparator = options.comparator;
@@ -384,12 +384,10 @@ component {
 
 				Collection.initialize(argumentCollection = arguments);
 				
-
 				if (_.size(models) > 0) {
 					options.parse = _.has(options, 'parse') ? options.parse : Collection.parse;
 					Collection.reset(models, {silent: true, parse: options.parse});
 				}
-
 				
 				return Collection;
 			};
@@ -480,7 +478,6 @@ component {
 				model.trigger('add', model, this, options);
 			}
 			return this;			
-			// ArrayAppend(this.models, backboneModel);
 		},
 		remove: function(any models = [], struct options = {}) {
 			arguments.models = _.isArray(models) ? models : [models];
@@ -659,7 +656,7 @@ component {
 
 				_.extend(View, obj);
 
-				_.extend(View, Backbone.Events);
+				_.extend(View, duplicate(Backbone.Events));
 
 				// apply special options directly to View
 				var specialOptions = ['model','collection','el','id','className','tagName','attributes'];

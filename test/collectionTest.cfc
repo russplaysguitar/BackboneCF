@@ -65,17 +65,17 @@ component extends="mxunit.framework.TestCase" {
 	    otherCol.on('add', function() {
 			secondAdded = true;
 	    });
+	    var ctx = {};
 	    col.on('add', function(model, collection, options){
-			added = model.get('label');
+			var added = model.get('label');
 			// assertEquals(options.index, 5);//todo: get this fixed
-			opts = options;
-	    });
+		    assertEquals(added, 'e');
+		    assertTrue(options.amazing);
+	    }, ctx);
 	    col.add(e, {amazing: true});
-	    assertEquals(added, 'e');
 	    assertEquals(col.length, 5);
 	    assertTrue(_.isEqual(col.last(), e));
 	    assertEquals(otherCol.length, 1);
-	    assertTrue(opts.amazing);
 
 	    var Model = Backbone.Model.extend();
 	    var f = Model({id: 20, label : 'f'});
@@ -133,6 +133,36 @@ component extends="mxunit.framework.TestCase" {
 		col.add({id: 1, name: 'Tim'}, {merge: true, silent: true});
 		assertEquals(col.first().get('name'), 'Tim');
 	}
+
+	public void function collection_addModelToMultipleCollections() {
+		var counter = 0;
+		var e = Backbone.Model.new({id: 10, label : 'e'});
+		e.on('add', function(model, collection) {
+			counter++;
+			assertEquals(e, model);
+			if (counter > 1) {
+				assertEquals(collection, colF);
+			} else {
+				assertEquals(collection, colE);
+			}
+		});
+		var colE = Backbone.Collection.new([]);
+		colE.on('add', function(model, collection) {
+			assertEquals(e, model);
+			assertEquals(colE, collection);
+		});
+		var colF = Backbone.Collection.new([]);
+		colF.on('add', function(model, collection) {
+			assertEquals(e, model);
+			assertTrue(_.isEqual(colF.toJSON(), collection.toJSON()));
+		});
+		colE.add(e);
+		assertTrue(_.isEqual(e.collection().toJSON(), colE.toJSON()));
+		colF.add(e);
+		assertTrue(_.isEqual(e.collection().toJSON(), colE.toJSON()));
+	}
+	
+	
 	
 	
 	
