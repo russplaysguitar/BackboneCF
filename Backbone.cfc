@@ -459,7 +459,6 @@ component {
 				return this;
 			for (i = 1; i <= arrayLen(this.models); i++) {
 				var model = this.models[i];
-				writeDump(model);
 				if (!_.has(cids, model.cid)) 
 					continue;
 				options.index = i;
