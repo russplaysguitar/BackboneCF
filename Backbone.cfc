@@ -438,8 +438,11 @@ component {
 			// Remove duplicates.
 			var i = ArrayLen(dups) + 1;
 			while (i-- > 1) {
-				models = _.splice(models, dups[i], 1);
+				var idx = dups[i];
+				dups[i] = models[dups[i]];// replace index with model for duplicate merge
+				models = _.splice(models, idx, 1);
 			}
+
 			// Listen to added models' events, and index models for lookup by id and by cid.
 			for (i = 1; i <= arrayLen(models); i++) {
 				var model = models[i];
@@ -453,6 +456,18 @@ component {
 			this.length += arrayLen(models);
 			var index = _.has(options, 'at') ? options.at : arrayLen(this.models) + 1;
 			this.models = _.splice(this.models, index, 0, models);
+
+			// Merge in duplicate models.
+			if (_.has(options, 'merge') && options.merge) {
+				for (var i = 1; i <= arraylen(dups); i++) {
+					writeDump(dups[i]);
+					if (_.has(dups[i], 'id') && _.has(this._byId, dups[i].id)) {
+						var model = this._byId[dups[i].id];
+						model.set(dups[i], options);
+					}
+				}
+			}
+
 			if (_.has(this, 'comparator') && !_.has(options, 'at')) 
 				this.sort({silent: true});
 			if (_.has(options, 'silent') && options.silent) 

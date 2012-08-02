@@ -123,6 +123,18 @@ component extends="mxunit.framework.TestCase" {
 	    assertEquals(col.length, 1);
 	}
 	
+	public void function collection_mergeInDuplicateModelsWithMergeTrue() {
+		var col = Backbone.Collection.new();
+		col.add([{id: 1, name: 'Moe'}, {id: 2, name: 'Curly'}, {id: 3, name: 'Larry'}]);
+		col.add({id: 1, name: 'Moses'});
+		assertEquals(col.first().get('name'), 'Moe');
+		col.add({id: 1, name: 'Moses'}, {merge: true});
+		assertEquals(col.first().get('name'), 'Moses');
+		col.add({id: 1, name: 'Tim'}, {merge: true, silent: true});
+		assertEquals(col.first().get('name'), 'Tim');
+	}
+	
+	
 	
 	
 	
