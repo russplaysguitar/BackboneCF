@@ -68,7 +68,7 @@ component extends="mxunit.framework.TestCase" {
 	    var ctx = {};
 	    col.on('add', function(model, collection, options){
 			var added = model.get('label');
-			// assertEquals(options.index, 5);//todo: get this fixed
+			assertEquals(options.index, 5);
 		    assertEquals(added, 'e');
 		    assertTrue(options.amazing);
 	    }, ctx);
