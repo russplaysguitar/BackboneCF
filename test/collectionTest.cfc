@@ -217,11 +217,40 @@ component extends="mxunit.framework.TestCase" {
 			otherRemoved = true;
 		});
 		col.remove(d);
-		// assertEquals(removed, 'd');
+		assertEquals(removed, 'd');
 		assertEquals(col.length, 3);
 		assertEquals(col.first(), a);
 		assertEquals(otherRemoved, false);
 	}
+	
+	public void function shiftAndPop() {
+		var col = Backbone.Collection.new([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
+	    assertEquals(col.shift().get('a'), 'a');
+	    assertEquals(col.pop().get('c'), 'c');
+	}
+	
+	public void function slice() {
+		var col = Backbone.Collection.new([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
+	    var array = col.slice(2, 4);
+	    assertEquals(arrayLen(array), 2);
+	    assertEquals(array[1].get('b'), 'b');
+	}
+	
+	public void function eventsAreUnboundOnRemove() {
+		var counter = 0;
+		var dj = Backbone.Model.new();
+		var emcees = Backbone.Collection.new([dj]);
+		emcees.on('change', function(){ counter++; });
+		dj.set({name : 'Kool'});
+		assertEquals(counter, 1);
+		emcees.reset([]);
+		assertTrue(!_.has(dj, 'collection'));
+		dj.set({name : 'Shadow'});
+		assertEquals(counter, 1);
+	}
+	
+	
+	
 	
 	
 	

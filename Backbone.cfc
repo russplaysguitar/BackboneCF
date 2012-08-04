@@ -536,6 +536,10 @@ component {
 			return result;
 			// TODO: options
 		},
+		// Slice out a sub-array of models from the collection.
+	    slice: function(begin, end) {
+			return _.slice(this.models, begin, end);
+	    },
 		sort: function (struct options = {}) {
 			if (!_.has(this, 'comparator'))
 				throw('Cannot sort a set without a comparator', 'Backbone');
@@ -614,7 +618,7 @@ component {
 	    },
 	    // Internal method to remove a model's ties to a collection.
 	    _removeReference: function(required model) {
-			if (_.has(model, 'collection') && _.isEqual(this, model.collection)) {
+			if (_.has(model, 'collection') && _.isEqual(this.toJSON(), model.collection().toJSON())) {
 				structDelete(model, 'collection');
 			}
 			if (_.has(model, 'off'))
