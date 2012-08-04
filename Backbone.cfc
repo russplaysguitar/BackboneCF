@@ -503,14 +503,12 @@ component {
 			}
 		},
 		getByCid: function (required any cid) {
-			if (isStruct(arguments.cid) && _.has(cid, 'cid')) {
+			// cid can either be a cid or a structure with a cid (confusing, I know)
+			if (isStruct(arguments.cid) && _.has(cid, 'cid') && _.has(this._byCid, arguments.cid.cid)) {
 				return this._byCid[arguments.cid.cid];
 			}
 			else if (isSimpleValue(arguments.cid) && _.has(this._byCid, arguments.cid)) {
 				return this._byCid[arguments.cid];
-			}
-			else {
-				throw("getByCid() requires either a struct with a cid attribute or a cid string.", "Backbone");
 			}
 		},
 		at: function (required numeric index) {

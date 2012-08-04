@@ -249,6 +249,31 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(counter, 1);
 	}
 	
+	public void function removeInMultipleCollections() {
+		var modelData = {
+			id : 5,
+			title : 'Othello'
+		};
+		var passed = false;
+		var e = Backbone.Model.new(modelData);
+		var f = Backbone.Model.new(modelData);
+		f.on('remove', function() {
+			passed = true;
+		});
+		var colE = Backbone.Collection.new([e]);
+		var colF = Backbone.Collection.new([f]);
+		assertTrue(!_.isEqual(e, f));
+		assertTrue(colE.length == 1);
+		assertTrue(colF.length == 1);
+		colE.remove(e);
+		assertEquals(passed, false);
+		assertTrue(colE.length == 0);
+		colF.remove(e);
+		assertTrue(colF.length == 0);
+		assertEquals(passed, true);
+	}
+	
+	
 	
 	
 	
