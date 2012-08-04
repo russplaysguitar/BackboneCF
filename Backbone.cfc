@@ -348,12 +348,12 @@ component {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
 
-				_.extend(Collection, properties);
 
 				_.extend(Collection, duplicate(Backbone.Events));
 
 				if (_.has(options, 'comparator')) 
 					Collection.comparator = options.comparator;
+
 
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
@@ -371,6 +371,8 @@ component {
 
 				_.bindAll(Collection);
 
+				_.extend(Collection, properties);
+				
 				Collection._reset();
 
 				Collection.models = models;
@@ -451,7 +453,6 @@ component {
 			// Merge in duplicate models.
 			if (_.has(options, 'merge') && options.merge) {
 				for (var i = 1; i <= arraylen(dups); i++) {
-					writeDump(dups[i]);
 					if (_.has(dups[i], 'id') && _.has(this._byId, dups[i].id)) {
 						var model = this._byId[dups[i].id];
 						model.set(dups[i], options);
@@ -538,14 +539,21 @@ component {
 			// TODO: options
 		},
 		sort: function (struct options = {}) {
-			if (_.has(this, 'comparator')) {
-				var Underscore = duplicate(_);
-				Underscore.comparison = this.comparator;
-				this.models = Underscore.sortBy(this.models);
-			}
-			else 
+			if (!_.has(this, 'comparator'))
 				throw('Cannot sort a set without a comparator', 'Backbone');
-			// TODO: options and "reset" event
+		
+			var metaData = getMetaData(this.comparator);
+
+			var boundComparator = _.bind(this.comparator, this);
+
+			if (arrayLen(metaData.parameters) == 1)
+				this.models = _.sortBy(this.models, boundComparator);
+			else
+				arraySort(this.models, boundComparator);
+		
+			if (!_.has(options, 'silent') || !options.silent) this.trigger('reset', this, options);
+			
+			return this;
 		},
 		pluck: function (required string attribute) {
 			return _.map(this.models, function(model) {

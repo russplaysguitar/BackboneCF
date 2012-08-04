@@ -51,15 +51,15 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(col.get(101).get('name'), 'one');
 	}
 	
-	public void function testAt() {
+	public void function at() {
 		assertEquals(col.at(3), c);
 	}
 	
-	public void function testPluck() {
+	public void function pluck() {
 		assertEquals(col.pluck('label'), ['a', 'b', 'c', 'd']);
 	}
 	
-	public void function testAdd() {
+	public void function add() {
 	    var e = Backbone.Model.new({id: 10, label : 'e'});
 	    otherCol.add(e);
 	    otherCol.on('add', function() {
@@ -111,19 +111,19 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(col.pluck('id'), [3, 1, 2]);
 	}
 	
-	public void function collection_cantAddModelToCollectionTwice() {
+	public void function cantAddModelToCollectionTwice() {
 		var col = Backbone.Collection.new([{id: 1}, {id: 2}, {id: 1}, {id: 2}, {id: 3}]);
 	    assertEquals(col.pluck('id'), [1, 2, 3]);
 	}
 	
-	public void function collection_cantAddDifferentModelWithSameIdToCollectionTwice() {
+	public void function cantAddDifferentModelWithSameIdToCollectionTwice() {
 		var col = Backbone.Collection.new();
 	    col.unshift({id: 101});
 	    col.add({id: 101});
 	    assertEquals(col.length, 1);
 	}
 	
-	public void function collection_mergeInDuplicateModelsWithMergeTrue() {
+	public void function mergeInDuplicateModelsWithMergeTrue() {
 		var col = Backbone.Collection.new();
 		col.add([{id: 1, name: 'Moe'}, {id: 2, name: 'Curly'}, {id: 3, name: 'Larry'}]);
 		col.add({id: 1, name: 'Moses'});
@@ -134,7 +134,7 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(col.first().get('name'), 'Tim');
 	}
 
-	public void function collection_addModelToMultipleCollections() {
+	public void function addModelToMultipleCollections() {
 		var counter = 0;
 		var e = Backbone.Model.new({id: 10, label : 'e'});
 		e.on('add', function(model, collection) {
@@ -192,7 +192,22 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(col.indexOf(item = tom), 3);
 	}
 	
-		
+	public void function comparatorThatDependsOnThis() {
+		var Collection = Backbone.Collection.extend({
+			negative: function(num) {
+				return -num;
+			},
+			comparator: function(a) {
+				return this.negative(a.id);
+			}
+		});
+		var col = Collection();
+		col.add([{id: 1}, {id: 2}, {id: 3}]);
+		assertEquals(col.pluck('id'), [3, 2, 1]);
+	}
+	
+	
+	
 	
 
 	public void function setUp() {
