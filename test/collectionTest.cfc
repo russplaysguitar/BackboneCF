@@ -175,7 +175,24 @@ component extends="mxunit.framework.TestCase" {
 		col.add({value: 1}, {parse: true});
 		assertEquals(col.at(1).get('value'), 2);
 	}
+
+	public void function addModelToCollectionWithSortStyleComparatior() {
+		var col = Backbone.Collection.new();
+		col.comparator = function(a, b) {
+			return a.get('name') < b.get('name') ? -1 : 1;
+		};
+		var tom = Backbone.Model.new({name: 'Tom'});
+		var rob = Backbone.Model.new({name: 'Rob'});
+		var tim = Backbone.Model.new({name: 'Tim'});
+		col.add(tom);
+		col.add(rob);
+		col.add(tim);
+		assertEquals(col.indexOf(item = rob), 1);
+		assertEquals(col.indexOf(item = tim), 2);
+		assertEquals(col.indexOf(item = tom), 3);
+	}
 	
+		
 	
 
 	public void function setUp() {
