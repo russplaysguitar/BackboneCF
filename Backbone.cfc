@@ -118,26 +118,18 @@ component {
 				var Model = duplicate(Backbone.Model);
 
 				_.extend(Model, properties);
-
-				if (_.has(properties, 'defaults')) {
-					arguments.attributes = _.extend({}, properties.defaults, arguments.attributes);
-				}
-			
 			    if (_.has(options, 'collection')) 
 			   		Model.collection = options.collection;
+
+			   	if (_.has(options, 'parse')) 
+			   		arguments.attributes = Model.parse(arguments.attributes);
+
+				if (_.has(properties, 'defaults'))
+					arguments.attributes = _.extend({}, properties.defaults, arguments.attributes);
 
 				_.extend(Model, duplicate(Backbone.Events));
 
 				_.bindAll(Model);
-
-				// if (_.has(attributes, 'id')) {
-				// 	Model.id = attributes.id;
-				// 	structDelete(attributes, 'id');
-				// }
-
-				// if (_.has(attributes, Model.idAttribute)) {
-				// 	Model.id = attributes[Model.idAttribute];
-				// }				
 
 				Model.set(arguments.attributes, {silent: true});
 
@@ -146,7 +138,6 @@ component {
 				Model.initialize(attributes);
 
 				Model.cid = _.uniqueId('c');
-
 				return Model;
 			};
 		},
@@ -321,6 +312,8 @@ component {
 			};
 			var result = Backbone.Sync('read', model, options);
 		},
+		// **parse** converts a response into the hash of attributes to be `set` on
+	    // the model. The default implementation is just to pass the response along.
 		parse: function(resp, xhr) {
 			return resp;
 	    },
@@ -415,7 +408,7 @@ component {
 			}
 			for (var i = 1; i <= arrayLen(models); i++) {
 				model = models[i];
-				var model = this._prepareModel(model);
+				var model = this._prepareModel(model, options);
 				if (!isStruct(model)) {
 					throw("Can't add an invalid model to a collection", "Backbone");
 				}

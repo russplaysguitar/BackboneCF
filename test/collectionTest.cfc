@@ -161,14 +161,20 @@ component extends="mxunit.framework.TestCase" {
 		colF.add(e);
 		assertTrue(_.isEqual(e.collection().toJSON(), colE.toJSON()));
 	}
-	
-	
-	
-	
-	
-	
-	
-	
+
+	public void function addModelWithParse() {
+		var Model = Backbone.Model.extend({
+			parse: function(obj) {
+				obj.value += 1;
+				return obj;
+			}
+		});
+
+		var Collection = Backbone.Collection.extend({model: Model});
+		var col = Collection();
+		col.add({value: 1}, {parse: true});
+		assertEquals(col.at(1).get('value'), 2);
+	}
 	
 	
 
