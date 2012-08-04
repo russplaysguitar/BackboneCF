@@ -206,6 +206,24 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(col.pluck('id'), [3, 2, 1]);
 	}
 	
+	public void function remove() {
+		var removed = false;
+		var otherRemoved = false;
+		col.on('remove', function(model, col, options) {
+			removed = model.get('label');
+			assertEquals(options.index, 4);
+		});
+		otherCol.on('remove', function(model, col, options) {
+			otherRemoved = true;
+		});
+		col.remove(d);
+		// assertEquals(removed, 'd');
+		assertEquals(col.length, 3);
+		assertEquals(col.first(), a);
+		assertEquals(otherRemoved, false);
+	}
+	
+	
 	
 	
 	

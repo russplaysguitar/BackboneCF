@@ -348,12 +348,10 @@ component {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
 
-
 				_.extend(Collection, duplicate(Backbone.Events));
 
 				if (_.has(options, 'comparator')) 
 					Collection.comparator = options.comparator;
-
 
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
@@ -485,8 +483,8 @@ component {
 				if (_.has(model, 'id'))
 					StructDelete(this._byId, model.id);	
 				this.length--;
-				if (_.has(options, 'silent') && options.silent) {
-					options.index = this.indexOf(model);
+				if (!_.has(options, 'silent') || !options.silent) {
+					options.index = this.indexOf(item = model);
 					model.trigger('remove', model, this, options);
 				}
 				this._removeReference(model);
@@ -637,7 +635,7 @@ component {
 				this._byId[model.id] = model;
 			}
 			// the next line causes an infinite loop. don't do it!
-			// this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection});
+			this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection, changedAttributes: options});
 		},
 		create: function (struct attributes = {}, struct options = {}) {
 			var newModel = this.Model(argumentCollection = arguments);
