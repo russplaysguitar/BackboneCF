@@ -312,6 +312,67 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(counter, 2);
 	}
 	
+	// TODO
+	// public void function modelDestroyRemovesFromAllCollections() {
+	// 	var e = Backbone.Model.new({id: 5, title: 'Othello'});
+	// 	e.sync = function(method, model, options) { options.success({}); };
+	// 	var colE = Backbone.Collection.new([e]);
+	// 	var colF = Backbone.Collection.new([e]);
+	// 	e.destroy();
+	// 	assertTrue(colE.length == 0);
+	// 	assertTrue(colF.length == 0);
+	// 	assertTrue(!_.has(e, 'collection'));
+	// }
+	
+	// TODO
+	// test("Colllection: non-persisted model destroy removes from all collections", 3, function() {
+ //    var e = new Backbone.Model({title: 'Othello'});
+ //    e.sync = function(method, model, options) { throw "should not be called"; };
+ //    var colE = new Backbone.Collection([e]);
+ //    var colF = new Backbone.Collection([e]);
+ //    e.destroy();
+ //    ok(colE.length == 0);
+ //    ok(colF.length == 0);
+ //    equal(undefined, e.collection);
+ //  });
+
+	// TODO
+ //  test("Collection: fetch", 4, function() {
+ //    col.fetch();
+ //    equal(lastRequest.method, 'read');
+ //    equal(lastRequest.model, col);
+ //    equal(lastRequest.options.parse, true);
+
+ //    col.fetch({parse: false});
+ //    equal(lastRequest.options.parse, false);
+ //  });
+		
+	public void function create() {
+		var model = col.create({label: 'f'}, {wait: true});
+		// TODO
+		// assertEquals(lastRequest.method, 'create');
+		// assertEquals(lastRequest.model, model);
+		assertEquals(model.get('label'), 'f');
+		assertEquals(model.collection().cid, col.cid);
+	}
+	
+
+	public void function aFailingCreateRunsTheErrorCallback() {
+		var ValidatingModel = Backbone.Model.extend({
+			validate: function(attrs) {
+				return "fail";
+			}
+		});
+		var ValidatingCollection = Backbone.Collection.extend({
+			model: ValidatingModel
+		});
+		var flag = false;
+		var callback = function(model, error) { flag = true; };
+		var col = ValidatingCollection();
+		col.create({"foo":"bar"}, { error: callback });
+		assertEquals(flag, true);
+	}
+	
 	
 	
 	

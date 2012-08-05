@@ -227,13 +227,19 @@ component {
 				this.unset(key, options);
 			});
 		},
+		// Destroy this model on the server if it was already persisted.
+		// Optimistically removes the model from its collection, if it has one.
+		// If `wait: true` is passed, waits for the server to respond before removal.
+		destroy: function (options) {
+			// TODO
+		},
 		_validate: function (struct attributes, struct options = { silent:false }) {
 			var silent = _.has(options, 'silent') && options.silent;
 			if (silent || !_.has(this, 'validate'))
 				return true;
 			var attrs = _.extend({}, this.attributes, arguments.attributes);
 			var error = this.validate(attrs, options);
-			if (!error) 
+			if (isNull(error)) 
 				return true;
 			if (_.has(options, 'error')) {
 				options.error(this, error, options);
@@ -311,6 +317,12 @@ component {
 				success(model, resp);
 			};
 			var result = Backbone.Sync('read', model, options);
+		},
+		// Set a hash of model attributes, and sync the model to the server.
+		// If the server returns an attributes hash that differs, the model's
+		// state will be `set` again.
+		save: function(key, value, options) {
+			// TODO
 		},
 		// **parse** converts a response into the hash of attributes to be `set` on
 	    // the model. The default implementation is just to pass the response along.
@@ -640,10 +652,16 @@ component {
 			this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection, changedAttributes: options});
 		},
 		create: function (struct attributes = {}, struct options = {}) {
-			var newModel = this.Model(argumentCollection = arguments);
-			this.add([newModel]);
-			return newModel;
-			// TODO: options and events
+			var model = this._prepareModel(attributes, options);
+			if (!isStruct(model)) return false;
+			if (!_.has(options, 'wait') || !options.wait) this.add(model, options);
+			var success = _.has(options, 'success') ? options.success : false;
+			options.success = function(model, resp, options) {
+				if (_.has(options, 'wait') && options.wait) this.add(model, options);
+				if (_.isFunction(success)) success(model, resp, options);
+			};
+			model.save(options = options);
+			return model;
 		},
 		parse: function(resp, xhr) {
 			return resp;
