@@ -356,7 +356,6 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.collection().cid, col.cid);
 	}
 	
-
 	public void function aFailingCreateRunsTheErrorCallback() {
 		var ValidatingModel = Backbone.Model.extend({
 			validate: function(attrs) {
@@ -372,6 +371,17 @@ component extends="mxunit.framework.TestCase" {
 		col.create({"foo":"bar"}, { error: callback });
 		assertEquals(flag, true);
 	}
+	
+	public void function intialize() {
+		var Collection = Backbone.Collection.extend({
+			initialize: function() {
+				this.one = 1;
+			}
+		});
+		var coll = Collection();
+		assertEquals(coll.one, 1);
+	}
+	
 	
 	
 	

@@ -362,8 +362,7 @@ component {
 
 				_.extend(Collection, duplicate(Backbone.Events));
 
-				if (_.has(options, 'comparator')) 
-					Collection.comparator = options.comparator;
+				if (_.has(options, 'comparator')) Collection.comparator = options.comparator;
 
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
@@ -379,16 +378,20 @@ component {
 					};
 				});
 
+				_.extend(Collection, properties);
+
+				if (_.has(Collection, 'comparator')) 
+					Collection.comparatorMetaData = getMetaData(Collection.comparator);
+				
 				_.bindAll(Collection);
 
-				_.extend(Collection, properties);
-				
 				Collection._reset();
 
 				Collection.models = models;
 
 				Collection.initialize(argumentCollection = arguments);
-				Collection.cid = _.uniqueId('c');
+
+				Collection.cid = _.uniqueId('c');// not in Backbone.js, but useful for equality testing
 				
 				if (_.size(models) > 0) {
 					options.parse = _.has(options, 'parse') ? options.parse : Collection.parse;
@@ -556,11 +559,13 @@ component {
 			if (!_.has(this, 'comparator'))
 				throw('Cannot sort a set without a comparator', 'Backbone');
 		
-			var metaData = getMetaData(this.comparator);
+			// TODO: make this cooler. this is kindof a lame hack.
+			if (!_.has(this, 'comparatorMetaData'))
+				this.comparatorMetaData = getMetaData(this.comparator);
 
 			var boundComparator = _.bind(this.comparator, this);
 
-			if (arrayLen(metaData.parameters) == 1)
+			if (arrayLen(this.comparatorMetaData.parameters) == 1)
 				this.models = _.sortBy(this.models, boundComparator);
 			else
 				arraySort(this.models, boundComparator);
