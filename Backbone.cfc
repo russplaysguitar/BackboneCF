@@ -376,11 +376,13 @@ component {
 				Collection.models = models;
 
 				Collection.initialize(argumentCollection = arguments);
+				Collection.cid = _.uniqueId('c');
 				
 				if (_.size(models) > 0) {
 					options.parse = _.has(options, 'parse') ? options.parse : Collection.parse;
 					Collection.reset(models, {silent: true, parse: options.parse});
 				}
+
 				
 				return Collection;
 			};
@@ -600,7 +602,6 @@ component {
 			this._byCid = {};
 		},
 		_prepareModel: function(required struct model, struct options = {}) {
-			// TODO: fix circular reference to collection (maybe write getCollection() ?)
 			// TODO: improve model check to ensure correct type of model
 			if (!(_.has(model, 'cid'))) {
 				var attrs = model;
@@ -616,7 +617,7 @@ component {
 	    },
 	    // Internal method to remove a model's ties to a collection.
 	    _removeReference: function(required model) {
-			if (_.has(model, 'collection') && _.isEqual(this.toJSON(), model.collection().toJSON())) {
+			if (_.has(model, 'collection') && this.cid == model.collection().cid) {
 				structDelete(model, 'collection');
 			}
 			if (_.has(model, 'off'))
@@ -625,7 +626,7 @@ component {
 		// Internal method called every time a model in the set fires an event. Sets need to update their indexes when models change ids. All other events simply proxy through. "add" and "remove" events that originate in other collections are ignored.
 		_onModelEvent: function(required string eventName, required struct model, collection, options = {}) {
 			if ((eventName == 'add' || eventName == 'remove')) {
-				var isEq = _.has(arguments, 'collection') && _.has(collection, 'toJSON') && _.isEqual(collection.toJSON(), this.toJSON());
+				var isEq = _.has(arguments, 'collection') && collection.cid == this.cid;
 				if (!isEq)
 					return;
 			}
@@ -636,7 +637,6 @@ component {
 				StructDelete(this._byId, model.previous(model.idAttribute));
 				this._byId[model.id] = model;
 			}
-			// the next line causes an infinite loop. don't do it!
 			this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection, changedAttributes: options});
 		},
 		create: function (struct attributes = {}, struct options = {}) {

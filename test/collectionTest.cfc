@@ -139,17 +139,19 @@ component extends="mxunit.framework.TestCase" {
 		var e = Backbone.Model.new({id: 10, label : 'e'});
 		e.on('add', function(model, collection) {
 			counter++;
-			assertEquals(e, model);
+			assertEquals(e.cid, model.cid);
 			if (counter > 1) {
-				assertEquals(collection, colF);
+				assertEquals(collection.cid, colF.cid);
 			} else {
-				assertEquals(collection, colE);
+				assertEquals(collection.cid, colE.cid);
 			}
 		});
 		var colE = Backbone.Collection.new([]);
 		colE.on('add', function(model, collection) {
-			assertEquals(e, model);
-			assertEquals(colE, collection);
+			assertEquals(e.cid, model.cid);
+			assertEquals(e.toJSON(), model.toJSON());
+			assertEquals(colE.cid, collection.cid);
+			assertEquals(colE.toJSON(), collection.toJSON());
 		});
 		var colF = Backbone.Collection.new([]);
 		colF.on('add', function(model, collection) {
@@ -272,6 +274,44 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(colF.length == 0);
 		assertEquals(passed, true);
 	}
+	
+	public void function removeSameModelInMultipleCollections() {
+		var counter = 0;
+		var e = Backbone.Model.new({id: 5, title: 'Othello'});
+		e.on('remove', function(model, collection) {
+			counter++;
+			assertEquals(e.toJSON(), model.toJSON());
+			assertEquals(e.cid, model.cid);
+			if (counter > 1) {
+				assertEquals(collection.cid, colE.cid);
+			} else {
+				assertEquals(collection.cid, colF.cid);
+			}
+		});
+		var colE = Backbone.Collection.new([e]);
+		colE.on('remove', function(model, collection) {
+			assertEquals(e.toJSON(), model.toJSON());
+			assertEquals(e.cid, model.cid);
+			assertEquals(colE.cid, collection.cid);
+		});
+		var colF = Backbone.Collection.new([e]);
+		colF.on('remove', function(model, collection) {
+			assertEquals(e.toJSON(), model.toJSON());
+			assertEquals(e.cid, model.cid);
+			assertEquals(colF.cid, collection.cid);
+		});
+		assertEquals(colE.cid, e.collection().cid);
+		colF.remove(e);
+		assertTrue(colF.length == 0);
+		assertTrue(colE.length == 1);
+		assertEquals(counter, 1);
+		assertEquals(colE.cid, e.collection().cid);
+		colE.remove(e);
+		assertTrue(!_.has(e, 'collection'));
+		assertTrue(colE.length == 0);
+		assertEquals(counter, 2);
+	}
+	
 	
 	
 	
