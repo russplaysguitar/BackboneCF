@@ -518,6 +518,74 @@ component extends="mxunit.framework.TestCase" {
 		col.add([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}]);
 	}
 	
+	public void function indexWithComparator() {
+		var counter = 0;
+		var col = Backbone.Collection.new([{id: 2}, {id: 4}], {
+			comparator: function(model){ return model.id; }
+		});
+		col.on('add', function(model, colleciton, options){
+			if (model.id == 1) {
+				assertEquals(options.index, 1);
+				assertEquals(counter++, 0);
+			}
+			if (model.id == 3) {
+				assertEquals(options.index, 3);
+				assertEquals(counter++, 1);
+			}
+		});
+		col.add([{id: 3}, {id: 1}]);
+	}
+	
+	public void function throwingDuringAddLeavesConsistentState() {
+		var col = Backbone.Collection.new();
+		col.on('test', function() { assertTrue(false); });
+		col.model = Backbone.Model.extend({
+			validate: function(attrs){ if (!attrs.valid) return 'invalid'; }
+		});
+		var model = col.model({id: 1, valid: true});
+		try {
+			col.add([model, {id: 2}]);
+		}
+		catch(any e) { ;}
+		model.trigger('test');
+		assertTrue(isNull(col.getByCid(model.cid)));
+		assertTrue(isNull(col.get(1)));
+		assertEquals(col.length(), 0);
+	}
+	
+	public void function multipleCopiesOfTheSameModel() {
+		var col = Backbone.Collection.new();
+		var model = Backbone.Model.new();
+		col.add([model, model]);
+		assertEquals(col.length(), 1);
+		col.add([{id: 1}, {id: 1}]);
+		assertEquals(col.length(), 2);
+		assertEquals(col.last().id, 1);
+	}
+	
+	public void function passingOptionsDotModelSetsCollectionDotModel() {
+		var Model = Backbone.Model.extend({something:'unique'});
+		var c = Backbone.Collection.new([{id: 1}], {model: Model});
+		assertTrue(_.isEqual(c.model().something, Model().something));
+		assertEquals(c.at(1).something, Model().something);
+	}
+	
+	public void function falsyComparator() {
+		var Collection = Backbone.Collection.extend({
+			comparator: function(model){ return model.id; }
+		});
+		var col = Collection();
+		var colFalse = Collection(options = {comparator: false});
+		assertTrue(_.has(col, 'comparator'));
+		assertTrue(!colFalse.comparator);
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	

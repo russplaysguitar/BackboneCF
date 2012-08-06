@@ -118,6 +118,7 @@ component {
 				var Model = duplicate(Backbone.Model);
 
 				_.extend(Model, properties);
+
 			    if (_.has(options, 'collection')) 
 			   		Model.collection = options.collection;
 
@@ -364,8 +365,6 @@ component {
 
 				_.extend(Collection, duplicate(Backbone.Events));
 
-				if (_.has(options, 'comparator')) Collection.comparator = options.comparator;
-
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
 				    'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
@@ -381,6 +380,10 @@ component {
 				});
 
 				_.extend(Collection, properties);
+
+				if (_.has(options, 'model')) Collection.model = options.model;
+
+				if (_.has(options, 'comparator')) Collection.comparator = options.comparator;
 
 				if (_.has(Collection, 'comparator')) 
 					Collection.comparatorMetaData = getMetaData(Collection.comparator);
@@ -521,12 +524,9 @@ component {
 			else if (isSimpleValue(arguments.id) && _.has(this._byId, arguments.id)) {
 				return this._byId[arguments.id];
 			}
-			else {
-				throw("Collection does not have model with specified ID " & id, "Backbone");
-			}
 		},
 		getByCid: function (required any cid) {
-			// cid can either be a cid or a structure with a cid (confusing, I know)
+			// arguments.cid can either be a cid or a structure with a cid (confusing, I know)
 			if (isStruct(arguments.cid) && _.has(cid, 'cid') && _.has(this._byCid, arguments.cid.cid)) {
 				return this._byCid[arguments.cid.cid];
 			}
