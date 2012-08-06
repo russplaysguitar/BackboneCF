@@ -143,8 +143,7 @@ component {
 			};
 		},
 		get: function (required string key) {
-			if (this.has(key))
-				return this.attributes[key];
+			if (this.has(key)) return this.attributes[key];
 		},
 		escape: function (attr) {
 			return _.escape(this.get(attr));
@@ -301,9 +300,7 @@ component {
 			return serializeJSON(this.attributes);
 		},
 		clone: function () {
-			var newModel = duplicate(this);
-			newModel.cid = _.uniqueId('c');
-			return newModel;
+			return this.new(this.attributes);
 		},
 		fetch: function (struct options = {}) {
 			if (!_.has(options, 'parse'))
