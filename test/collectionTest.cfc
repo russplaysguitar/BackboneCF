@@ -461,13 +461,69 @@ component extends="mxunit.framework.TestCase" {
 			assertEquals(model.model_parameter, 'model parameter');
 		});
 	}
-		
-			
+
+	public void function triggerCustomEventOnModels() {
+		var fired = false;
+		a.on("custom", function() { fired = true; });
+		a.trigger("custom");
+		assertEquals(fired, true);
+	}
+	
+	public void function addDoesNotAlterArguments() {
+		var attrs = {};
+		var models = [attrs];
+		Backbone.Collection.new().add(models);
+		assertEquals(arraylen(models), 1);
+		assertTrue(_.isEqual(attrs, models[1]));
+	}
+	
+	public void function accessModelDotCollectionInABrandNewModel() {
+		var col = Backbone.Collection.new();
+		var Model = Backbone.Model.extend({
+			set: function(attrs) {
+				assertEquals(attrs.prop, 'value');
+				assertEquals(this.collection().cid, col.cid);
+				return this;
+			}
+		});
+		col.model = Model;
+		col.create({prop: 'value'});
+	}
+	
+	public void function removeItsOwnReferenceToTheModelsArray() {
+		var col = Backbone.Collection.new([
+			{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}
+		]);
+		assertEquals(col.length(), 6);
+		col.remove(col.models);
+		assertEquals(col.length(), 0);
+	}
+	
+	/**
+	* @mxunit:expectedException Backbone
+	*/
+	public void function addingModelsToACollectionWhichDoNotPassValidation() {
+		var Model = Backbone.Model.extend({
+			validate: function(attrs) {
+				if (attrs.id == 3) return "id can't be 3";
+			}
+		});
+
+		var Collection = Backbone.Collection.extend({
+			model: Model
+		});
+
+		var col = Collection();
+
+		col.add([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}]);
+	}
 	
 	
 	
 	
 	
+	
+
 
 	public void function setUp() {
 		variables.Backbone  = new backbone.Backbone();
