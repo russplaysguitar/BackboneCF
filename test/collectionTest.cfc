@@ -18,7 +18,7 @@ component extends="mxunit.framework.TestCase" {
 		col.sort();
 		assertEquals(col.first(), d, "d should be first");
 		assertEquals(col.last(), a, "a should be last");
-		assertEquals(col.length, 4);
+		assertEquals(col.length(), 4);
 	}
 
 	public void function getAndGetByCid() {
@@ -73,9 +73,9 @@ component extends="mxunit.framework.TestCase" {
 		    assertTrue(options.amazing);
 	    }, ctx);
 	    col.add(e, {amazing: true});
-	    assertEquals(col.length, 5);
+	    assertEquals(col.length(), 5);
 	    assertTrue(_.isEqual(col.last(), e));
-	    assertEquals(otherCol.length, 1);
+	    assertEquals(otherCol.length(), 1);
 
 	    var Model = Backbone.Model.extend();
 	    var f = Model({id: 20, label : 'f'});
@@ -83,9 +83,9 @@ component extends="mxunit.framework.TestCase" {
 	    var h = Model({id: 22, label : 'h'});
 	    var NewAtCol = Backbone.Collection.extend();
 	    var atCol = NewAtCol([f, g, h]);
-	    assertEquals(atCol.length, 3);
+	    assertEquals(atCol.length(), 3);
 	    atCol.add(e, {at: 1});
-	    assertEquals(atCol.length, 4);
+	    assertEquals(atCol.length(), 4);
 	    assertTrue(_.isEqual(atCol.at(1), e));
 	    assertTrue(_.isEqual(atCol.last(), h));
 	}
@@ -120,7 +120,7 @@ component extends="mxunit.framework.TestCase" {
 		var col = Backbone.Collection.new();
 	    col.unshift({id: 101});
 	    col.add({id: 101});
-	    assertEquals(col.length, 1);
+	    assertEquals(col.length(), 1);
 	}
 	
 	public void function mergeInDuplicateModelsWithMergeTrue() {
@@ -220,7 +220,7 @@ component extends="mxunit.framework.TestCase" {
 		});
 		col.remove(d);
 		assertEquals(removed, 'd');
-		assertEquals(col.length, 3);
+		assertEquals(col.length(), 3);
 		assertEquals(col.first(), a);
 		assertEquals(otherRemoved, false);
 	}
@@ -265,13 +265,13 @@ component extends="mxunit.framework.TestCase" {
 		var colE = Backbone.Collection.new([e]);
 		var colF = Backbone.Collection.new([f]);
 		assertTrue(!_.isEqual(e, f));
-		assertTrue(colE.length == 1);
-		assertTrue(colF.length == 1);
+		assertTrue(colE.length() == 1);
+		assertTrue(colF.length() == 1);
 		colE.remove(e);
 		assertEquals(passed, false);
-		assertTrue(colE.length == 0);
+		assertTrue(colE.length() == 0);
 		colF.remove(e);
-		assertTrue(colF.length == 0);
+		assertTrue(colF.length() == 0);
 		assertEquals(passed, true);
 	}
 	
@@ -302,13 +302,13 @@ component extends="mxunit.framework.TestCase" {
 		});
 		assertEquals(colE.cid, e.collection().cid);
 		colF.remove(e);
-		assertTrue(colF.length == 0);
-		assertTrue(colE.length == 1);
+		assertTrue(colF.length() == 0);
+		assertTrue(colE.length() == 1);
 		assertEquals(counter, 1);
 		assertEquals(colE.cid, e.collection().cid);
 		colE.remove(e);
 		assertTrue(!_.has(e, 'collection'));
-		assertTrue(colE.length == 0);
+		assertTrue(colE.length() == 0);
 		assertEquals(counter, 2);
 	}
 	
@@ -319,8 +319,8 @@ component extends="mxunit.framework.TestCase" {
 	// 	var colE = Backbone.Collection.new([e]);
 	// 	var colF = Backbone.Collection.new([e]);
 	// 	e.destroy();
-	// 	assertTrue(colE.length == 0);
-	// 	assertTrue(colF.length == 0);
+	// 	assertTrue(colE.length() == 0);
+	// 	assertTrue(colF.length() == 0);
 	// 	assertTrue(!_.has(e, 'collection'));
 	// }
 	
@@ -331,8 +331,8 @@ component extends="mxunit.framework.TestCase" {
  //    var colE = new Backbone.Collection([e]);
  //    var colF = new Backbone.Collection([e]);
  //    e.destroy();
- //    ok(colE.length == 0);
- //    ok(colF.length == 0);
+ //    assertTrue(colE.length() == 0);
+ //    assertTrue(colF.length() == 0);
  //    equal(undefined, e.collection);
  //  });
 
@@ -389,6 +389,65 @@ component extends="mxunit.framework.TestCase" {
 		var actualArray = deserializeJSON(actualJSON);
 		assertEquals(actualArray, expectedArray);
 	}
+	
+	public void function where() {
+		var coll = Backbone.Collection.new([
+		  {a: 1},
+		  {a: 1},
+		  {a: 1, b: 2},
+		  {a: 2, b: 2},
+		  {a: 3}
+		]);
+		assertEquals(arrayLen(coll.where({a: 1})), 3);
+		assertEquals(arrayLen(coll.where({a: 2})), 1);
+		assertEquals(arrayLen(coll.where({a: 3})), 1);
+		assertEquals(arrayLen(coll.where({b: 1})), 0);
+		assertEquals(arrayLen(coll.where({b: 2})), 2);
+		assertEquals(arrayLen(coll.where({a: 1, b: 2})), 1);
+	}
+
+	// TODO	
+	// public void function underscoreMethods() {
+	// 	// assertEquals(col.map(function(model){ return model.get('label'); }), ['a', 'b', 'c', 'd']);
+	// 	// assertEquals(col.any(function(model){ return model.id == 100; }), false);
+	// 	assertEquals(col.any(function(model){ return model.id == 0; }), true);
+	// 	assertEquals(col.indexOf(item = b), 2);
+	// 	assertEquals(col.size(), 4);
+	// 	assertEquals(arrayLen(col.rest()), 3);
+	// 	assertTrue(!_.include(target = col.rest()));//, a);
+	// 	assertTrue(!_.include(target = col.rest()));//, d);
+	// 	assertTrue(!col.isEmpty());
+	// 	assertTrue(!_.include(target = col.without(others = d)));//, d);
+	// 	assertEquals(col.max(function(model){ return model.id; }).id, 3);
+	// 	assertEquals(col.min(function(model){ return model.id; }).id, 0);
+	// 	// deepEqual(col.chain()
+	// 	//     .filter(function(o){ return o.id % 2 == 0; })
+	// 	//     .map(function(o){ return o.id * 2; })
+	// 	//     .value(),
+	// 	//  [4, 0]);
+	// }
+	
+	public void function reset() {
+		var resetCount = 0;
+		var models = col.models;
+		col.on('reset', function() { resetCount += 1; });
+		col.reset([]);
+		assertEquals(resetCount, 1);
+		assertEquals(col.length(), 0);
+		assertTrue(isNull(col.last()));
+		col.reset(models);
+		assertEquals(resetCount, 2);
+		assertEquals(col.length(), 4);
+		assertEquals(col.last().cid, d.cid);
+		col.reset(_.map(models, function(m){ return m.attributes; }));
+		assertEquals(resetCount, 3);
+		assertEquals(col.length(), 4);
+		assertTrue(col.last().cid != d.cid);
+		assertTrue(_.isEqual(col.last().attributes, d.attributes));
+	}
+	
+	
+	
 	
 	
 	

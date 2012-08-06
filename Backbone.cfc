@@ -350,7 +350,9 @@ component {
 		initialize: function () {},
 		Model: Backbone.Model.extend(),
 		models: [],
-		length: 0,
+		length: function () {
+			return arrayLen(this.models);
+		},
 		new: function (array models = [], options = {}) {
 			// convenience method, equivalent to: new Backbone.Collection(models, options) in BackboneJS
 			var NewCollection = Backbone.Collection.extend();
@@ -465,7 +467,6 @@ component {
 			}
 
 			// Insert models into the collection, re-sorting if needed, and triggering add events unless silenced.
-			this.length += arrayLen(models);
 			var index = _.has(options, 'at') ? options.at : arrayLen(this.models) + 1;
 			this.models = _.splice(this.models, index, 0, models);
 
@@ -503,9 +504,11 @@ component {
 					continue;
 				if (_.has(model, 'id'))
 					StructDelete(this._byId, model.id);	
-				this.length--;
+				StructDelete(this._byCid, model.cid);
+				var index = this.indexOf(item = model);
+				this.models = _.splice(this.models, index, 1);						
 				if (!_.has(options, 'silent') || !options.silent) {
-					options.index = this.indexOf(item = model);
+					options.index = index;
 					model.trigger('remove', model, this, options);
 				}
 				this._removeReference(model);
@@ -613,7 +616,7 @@ component {
 			}
 			this._reset();
 			this.add(models, _.extend({silent: true}, options));
-			if (_.has(options, 'silent') && !options.silent) 
+			if (!_.has(options, 'silent') || !options.silent) 
 				this.trigger('reset', this, options);
 			return this;
 		},
