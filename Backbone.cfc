@@ -119,8 +119,8 @@ component {
 
 				_.extend(Model, properties);
 
-			    if (_.has(options, 'collection')) 
-			   		Model.collection = options.collection;
+			    if (_.has(options, 'collection')) Model.collection = options.collection;
+			   		// Model.collection = function () { return options.collection; };
 
 			   	if (_.has(options, 'parse')) 
 			   		arguments.attributes = Model.parse(arguments.attributes);
