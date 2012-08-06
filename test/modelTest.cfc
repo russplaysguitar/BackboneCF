@@ -84,6 +84,37 @@ component extends="mxunit.framework.TestCase" {
 	    assertEquals(b.get('foo'), 1, "Changing a parent attribute does not change the clone.");
 	}
 	
+	public void function isNew() {
+		var a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3});
+	    assertTrue(a.isNew(), "it should be new");
+	    a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3, 'id': -5 });
+	    assertTrue(!a.isNew(), "any defined ID is legal, negative or positive");
+	    a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3, 'id': 0 });
+	    assertTrue(!a.isNew(), "any defined ID is legal, including zero");
+	    assertTrue( Backbone.Model.new({          }).isNew(), "is true when there is no id");
+	    assertTrue(!Backbone.Model.new({ 'id': 2  }).isNew(), "is false for a positive integer");
+	    assertTrue(!Backbone.Model.new({ 'id': -5 }).isNew(), "is false for a negative integer");
+	}
+	
+	public void function get() {
+		assertEquals(doc.get('title'), 'The Tempest');
+	    assertEquals(doc.get('author'), 'Bill Shakespeare');
+	}
+	
+	public void function escape() {
+		assertEquals(doc.escape('title'), 'The Tempest');
+	    doc.set({audience: 'Bill & Bob'});
+	    assertEquals(doc.escape('audience'), 'Bill &amp; Bob');
+	    doc.set({audience: 'Tim > Joan'});
+	    assertEquals(doc.escape('audience'), 'Tim &gt; Joan');
+	    doc.set({audience: 10101});
+	    assertEquals(doc.escape('audience'), '10101');
+	    // doc.unset('audience');// doesn't work because _.escape() requires input
+	    // assertEquals(doc.escape('audience'), '');
+	}
+	
+	
+	
 	
 	
 	

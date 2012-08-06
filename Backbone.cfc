@@ -146,7 +146,9 @@ component {
 			if (this.has(key)) return this.attributes[key];
 		},
 		escape: function (attr) {
-			return _.escape(this.get(attr));
+			var result = _.escape(this.get(attr));
+			this._escapedAttributes[attr] = result;
+			return result;
 		},
 		set: function (required any key, value = {}, struct options = {}) {
 			// Handle both "key", value and {key: value} -style arguments.
@@ -338,9 +340,9 @@ component {
 				return base;
 			return base & (right(base, 1) == '/' ? '' : '/') & urlEncodedFormat(this.id);
 		},
+		// A model is new if it has never been saved to the server, and lacks an id.
 		isNew: function () {
-			// TODO: implement this
-			return false;
+			return isNull(this.id);
 		}
 	};
 
