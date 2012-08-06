@@ -446,6 +446,23 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(_.isEqual(col.last().attributes, d.attributes));
 	}
 	
+	public void function resetPassesCallerOptions() {
+		var Model = Backbone.Model.extend({
+			initialize: function(attrs, options = {model_parameter: false}) {
+				this.model_parameter = options.model_parameter;
+			}
+		});
+		var Collection = Backbone.Collection.extend({ model: Model });
+		var col = Collection();
+		col.reset([{ astring: "green", anumber: 1 }, { astring: "blue", anumber: 2 }], 
+			{ model_parameter: 'model parameter' });
+		assertEquals(col.length(), 2);
+		col.each(iterator = function(model) {
+			assertEquals(model.model_parameter, 'model parameter');
+		});
+	}
+		
+			
 	
 	
 	

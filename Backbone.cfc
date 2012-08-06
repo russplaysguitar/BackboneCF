@@ -135,7 +135,7 @@ component {
 
 				Model._previousAttributes = _.clone(arguments.attributes);
 
-				Model.initialize(attributes);
+				Model.initialize(attributes, options);
 
 				Model.cid = _.uniqueId('c');
 				return Model;
@@ -415,7 +415,6 @@ component {
 			return result;
 		},
 		add: function (any models = [], struct options = {}) {
-			// TODO test this method
 			var dups = [];
 			var cids = {};
 			var ids = {};
