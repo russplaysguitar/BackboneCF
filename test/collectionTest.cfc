@@ -580,7 +580,62 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(!colFalse.comparator);
 	}
 	
+	// TODO
+	// public void function optionsIsPassedToSuccessCallbacks() {
+	// 	var m = Backbone.Model.new({x:1});
+	// 	var col = Backbone.Collection.new();
+	// 	var argumentsHadOptions = false;
+	// 	var opts = {
+	// 		success: function(collection, resp, options){
+	// 			argumentsHadOptions = _.has(arguments, 'options');
+	// 		}
+	// 	};
+	// 	col.sync = m.sync = function( method, collection, options ){
+	// 		options.success();
+	// 	};
+	// 	col.fetch(opts);
+	// 	col.create(m, opts);
+	// 	assertTrue(argumentsHadOptions);
+	// }
 	
+	// TODO
+	// public void function triggerSyncEvent() {
+	// 	var collection = Backbone.Collection.new([], {
+	//       model: Backbone.Model.extend({
+	//         sync: function(method, model, options) {
+	//           options.success();
+	//         }
+	//       })
+	//     });
+	//     collection.sync = function(method, model, options) { options.success(); };
+	//     var syncWasCalled = false;
+	//     collection.on('sync', function() { syncWasCalled = true; });
+	//     collection.fetch();
+	//     collection.create({id: 1});
+	//     assertTrue(syncWasCalled);
+	// }
+	
+	// TODO
+	// public void function createWithWaitAddsModel() {
+	// 	var collection = Backbone.Collection.new();
+	// 	var model = Backbone.Model.new();
+	// 	model.sync = function(method, model, options){ options.success(); };
+	// 	var addWascalled = false;
+	// 	collection.on('add', function(){ addWascalled = true; });
+	// 	collection.create(model, {wait: true});
+	// 	assertTrue(addWascalled);
+	// }
+	
+	
+	public void function addSortsCollectionAfterMerge() {
+		var collection = Backbone.Collection.new([
+			{id: 1, x: 1},
+			{id: 2, x: 2}
+		]);
+		collection.comparator = function(model){ return model.get('x'); };
+		collection.add({id: 1, x: 3}, {merge: true});
+		assertEquals(collection.pluck('id'), [2, 1]);
+	}
 	
 	
 	
