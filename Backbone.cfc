@@ -403,9 +403,13 @@ component {
 			};
 		},
 		toJSON: function () {
-			var result = _.map(this.models, function(model) {
-				return model.toJSON();
+			var result = '[';
+			_.each(this.models, function(model, i) {
+				result &= model.toJSON();
+				if (i < arrayLen(this.models))
+					result &= ',';
 			});
+			result &= ']';
 			return result;
 		},
 		add: function (any models = [], struct options = {}) {

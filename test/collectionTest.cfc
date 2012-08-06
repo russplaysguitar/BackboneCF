@@ -382,13 +382,13 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(coll.one, 1);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
+	public void function toJSON() {
+		var expectedJSON = '[{"id":3,"label":"a"},{"id":2,"label":"b"},{"id":1,"label":"c"},{"id":0,"label":"d"}]';
+		var expectedArray = deserializeJSON(expectedJSON);
+		var actualJSON = col.toJSON();
+		var actualArray = deserializeJSON(actualJSON);
+		assertEquals(actualArray, expectedArray);
+	}
 	
 	
 	
