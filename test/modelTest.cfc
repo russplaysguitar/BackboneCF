@@ -113,7 +113,6 @@ component extends="mxunit.framework.TestCase" {
 	    // assertEquals(doc.escape('audience'), '');
 	}
 	
-	
 	public void function has() {
 		var model = Backbone.Model.new();
 
@@ -166,6 +165,30 @@ component extends="mxunit.framework.TestCase" {
 	    a.unset('id');
 	    assertEquals(a.id, "", "Unsetting the id should remove the id property.");
 	}
+	
+	public void function multipleUnsets() {
+		var i = 0;
+	    var counter = function(){ i++; };
+	    var model = Backbone.Model.new({a: 1});
+	    model.on("change:a", counter);
+	    model.set({a: 2});
+	    model.unset('a');
+	    model.unset('a');
+	    assertEquals(i, 2, 'Unset does not fire an event for missing attributes.');
+	}
+	
+	public void function unsetAndChangedAttribute() {
+		var model = Backbone.Model.new({a: 1});
+	    model.unset('a', {silent: true});
+	    var changedAttributes = model.changedAttributes();
+	    assertTrue(_.has(changedAttributes, 'a'), 'changedAttributes should contain unset properties');
+
+	    changedAttributes = model.changedAttributes();
+	    assertTrue(_.has(changedAttributes, 'a'), 'changedAttributes should contain unset properties when running changedAttributes again after an unset.');
+	  
+	}
+	
+	
 	
 	
 	

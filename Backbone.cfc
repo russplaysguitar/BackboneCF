@@ -298,6 +298,30 @@ component {
 			this._changing = false;
 			return this;
 		},
+		// Determine if the model has changed since the last `"change"` event.
+	    // If you specify an attribute name, determine if that attribute has changed.
+	    hasChanged: function(attr) {
+			if (!structKeyExists(arguments, 'attr')) return !_.isEmpty(this.changed);
+			return _.has(this.changed, attr);
+	    },
+		// Return an object containing all the attributes that have changed, or
+		// false if there are no changed attributes. Useful for determining what
+		// parts of a view need to be updated and/or what attributes need to be
+		// persisted to the server. Unset attributes will be set to undefined.
+		// You can also pass an attributes object to diff against the model,
+		// determining if there *would be* a change.
+		changedAttributes: function(diff) {
+			if (!structKeyExists(arguments, 'diff')) return this.hasChanged() ? _.clone(this.changed) : false;
+			var val = '';
+			var changed = {};
+			var old = this._previousAttributes;
+			for (var attr in diff) {
+				val = diff[attr];
+				if (_.isEqual(old[attr], val)) continue;
+				changed[attr] = val;
+			}
+			return changed;
+		},
 		toJSON: function () {
 			return serializeJSON(this.attributes);
 		},
