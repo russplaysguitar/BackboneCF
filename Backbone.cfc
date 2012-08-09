@@ -37,7 +37,7 @@ component {
 			return this;
 		},
 		// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
-		trigger: function (required string eventName, struct model = this, val, struct changedAttributes = {}) {
+		trigger: function (required string eventName, struct model = this, val = '', struct changedAttributes = {}) {
 			// TODO: handle list of events
 			if (_.has(this._callbacks, eventName) && eventName != 'all') {
 				var funcsArray = this._callbacks[eventName];
@@ -150,27 +150,28 @@ component {
 			this._escapedAttributes[attr] = result;
 			return result;
 		},
-		set: function (required any key, value = {}, struct options = {}) {
+		set: function (required any key, value = '', struct options = {}) {
 			// Handle both "key", value and {key: value} -style arguments.
 			if (isStruct(key)) {
 				var attrs = key;
-				arguments.options = arguments.value;
+				if (isStruct(arguments.value))
+					arguments.options = arguments.value;
 			} else {
 				var attrs = {};
 				attrs[key] = arguments.value;
 			}
 
 			// Extract attributes and options.
-			options.unset = _.has(options, 'unset') ? options.unset : false;
-			options.silent = _.has(options, 'silent') ? options.silent : false;
+			options.unset = _.has(arguments.options, 'unset') ? options.unset : false;
+			options.silent = _.has(arguments.options, 'silent') ? options.silent : false;
 			if (_.has(attrs, 'cid')) attrs = attrs.attributes;// attrs is a Backbone Model already
-			if (options.unset) for (attr in attrs) structDelete(attrs, attr);
 
 			// Run validation
+			if (options.unset) for (attr in attrs) attrs[attr] = '';
 			if (!this._validate(attrs, options)) return false;
 
 			// Check for changes of id.
-			if (_.has(attrs, this.idAttribute)) this.id = attrs[this.idAttribute];
+			if (_.has(attrs, this.idAttribute)) { this.id = attrs[this.idAttribute]; writeDump(attrs[this.idAttribute]); }
 
 			options.changes = _.has(options, 'changes') ? options.changes : {};
 			var now = this.attributes;
@@ -178,7 +179,7 @@ component {
 			var prev = _.has(this, '_previousAttributes') ? this._previousAttributes : {};
 
 			for (attr in attrs) {
-		        val = attrs[attr];
+		        var val = attrs[attr];
 
 		        // If the new and current value differ, record the change.
 		        if ((_.has(now, attr) && !_.isEqual(now[attr], val)) || (options.unset && _.has(now, attr))) {
@@ -215,14 +216,9 @@ component {
 		has: function (required string attribute) {
 			return _.has(this.attributes, attribute);
 		},
-		unset: function (required string key, struct options = { silent: false }) {
-			if (!this.has(key)) 
-				return;
-			this.changedAttributes.changes[key] = true;
-			var val = this.attributes[key];
-			structDelete(this.attributes, key);
-			if (!options.silent) 
-				this.change(this, val, this.changedAttributes);
+		unset: function (required string key, struct options = {}) {
+			var opts = _.extend({}, arguments.options, { unset: true });
+			return this.set(key = arguments.key, options = opts);
 		},
 		clear: function (struct options = { silent: false }) {
 			_.each(this.attributes, function (val, key) {
@@ -278,7 +274,11 @@ component {
 			var changes = _.extend({}, options.changes, this._silent);
 			this._silent = {};
 			for (var attr in changes) {
-				this.trigger('change:' & attr, this, this.get(attr), options);
+				if (!isNull(this.get(attr)))
+					var val = this.get(attr);
+				else
+					var val = '';
+				this.trigger('change:' & attr, this, val, options);
 			}
 			if (changing) return this;	
 

@@ -114,6 +114,61 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	
+	public void function has() {
+		var model = Backbone.Model.new();
+
+		assertEquals(model.has('name'), false);
+
+		model.set({
+		  '0': 0,
+		  '1': 1,
+		  'true': true,
+		  'false': false,
+		  'empty': '',
+		  'name': 'name'
+		  // 'null': null,
+		  // 'undefined': undefined
+		});
+
+		assertEquals(model.has('0'), true);
+		assertEquals(model.has('1'), true);
+		assertEquals(model.has('true'), true);
+		assertEquals(model.has('false'), true);
+		assertEquals(model.has('empty'), true);
+		assertEquals(model.has('name'), true);
+
+		model.unset('name');
+
+		assertEquals(model.has('name'), false);
+		assertEquals(model.has('null'), false);
+		assertEquals(model.has('undefined'), false);
+	}
+	
+	public void function setAndUnset() {
+		var a = Backbone.Model.new({id: 'id', foo: 1, bar: 2, baz: 3});
+	    var changeCount = 0;
+	    a.on("change:foo", function() { changeCount += 1; });
+	    a.set({'foo': 2});
+	    assertTrue(a.get('foo') == 2, "Foo should have changed.");
+	    assertTrue(changeCount == 1, "Change count should have incremented.");
+	    a.set({'foo': 2}); // set with value that is not new shouldn't fire change event
+	    assertTrue(a.get('foo') == 2, "Foo should NOT have changed, still 2");
+	    assertTrue(changeCount == 1, "Change count should NOT have incremented.");
+
+	    a.validate = function(attrs) {
+			assertTrue(attrs.foo == '', "don't ignore values when unsetting");
+	    };
+	    a.unset('foo');
+	    assertTrue(isNull(a.get('foo')), "Foo should have changed");
+	    structDelete(a, 'validate');
+	    assertTrue(changeCount == 2, "Change count should have incremented for unset.");
+
+	    a.unset('id');
+	    assertEquals(a.id, "", "Unsetting the id should remove the id property.");
+	}
+	
+	
+	
 	
 	
 	
