@@ -171,7 +171,7 @@ component {
 			if (!this._validate(attrs, options)) return false;
 
 			// Check for changes of id.
-			if (_.has(attrs, this.idAttribute)) { this.id = attrs[this.idAttribute]; writeDump(attrs[this.idAttribute]); }
+			if (_.has(attrs, this.idAttribute)) { this.id = attrs[this.idAttribute]; }
 
 			options.changes = _.has(options, 'changes') ? options.changes : {};
 			var now = this.attributes;
