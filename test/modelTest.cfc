@@ -185,8 +185,64 @@ component extends="mxunit.framework.TestCase" {
 
 	    changedAttributes = model.changedAttributes();
 	    assertTrue(_.has(changedAttributes, 'a'), 'changedAttributes should contain unset properties when running changedAttributes again after an unset.');
-	  
 	}
+	
+	public void function usingANonDefaultIdAttribute() {
+		var MongoModel = Backbone.Model.extend({idAttribute : '_id'});
+		var model = MongoModel({id: 'eye-dee', _id: 25, title: 'Model'});
+		assertEquals(model.get('id'), 'eye-dee');
+		assertEquals(model.id, 25);
+		assertEquals(model.isNew(), false);
+		model.unset('_id');
+		assertEquals(model.id, '');
+		assertEquals(model.isNew(), true);
+	}
+	
+	public void function setAnEmptyString() {
+		var model = Backbone.Model.new({name : "Model"});
+	    model.set({name : ''});
+	    assertEquals(model.get('name'), '');
+	}
+	
+	public void function clear() {
+		var changed = false;
+		var model = Backbone.Model.new({id: 1, name : "Model"});
+		model.on("change:name", function(){ changed = true; });
+		model.on("change", function() {
+			var changedAttrs = model.changedAttributes();
+			assertTrue(_.has(changedAttrs, 'name'));
+		});
+		model.clear();
+		assertEquals(changed, true);
+		assertTrue(isNull(model.get('name')));
+	}
+	
+	public void function defaults() {
+		var Defaulted = Backbone.Model.extend({
+		  defaults: {
+		    "one": 1,
+		    "two": 2
+		  }
+		});
+		var model = Defaulted({two: ''});
+		assertEquals(model.get('one'), 1);
+		assertEquals(model.get('two'), '');
+		Defaulted = Backbone.Model.extend({
+		  defaults: function() {
+		    return {
+		      "one": 3,
+		      "two": 4
+		    };
+		  }
+		});
+		var model = Defaulted({two: ''});
+		assertEquals(model.get('one'), 3);
+		assertEquals(model.get('two'), '');
+	}
+	
+	
+	
+	
 	
 	
 	

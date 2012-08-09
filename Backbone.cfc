@@ -125,8 +125,10 @@ component {
 			   	if (_.has(options, 'parse')) 
 			   		arguments.attributes = Model.parse(arguments.attributes);
 
-				if (_.has(properties, 'defaults'))
-					arguments.attributes = _.extend({}, properties.defaults, arguments.attributes);
+				if (_.has(properties, 'defaults')) {
+					var defaults = _.result(properties, 'defaults');
+					arguments.attributes = _.extend({}, defaults, arguments.attributes);
+				}
 
 				_.extend(Model, duplicate(Backbone.Events));
 
@@ -366,7 +368,7 @@ component {
 		},
 		// A model is new if it has never been saved to the server, and lacks an id.
 		isNew: function () {
-			return isNull(this.id);
+			return isNull(this.id) || this.id == '';
 		}
 	};
 
