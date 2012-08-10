@@ -69,8 +69,8 @@ component {
 			if (!_.has(model, 'url'))
 				throw('A "url" property or function must be specified', 'Backbone');
 			params.url = _.result(model, 'url');
-	    }
-	    if (!_.has(options, 'data') && _.has(arguments, 'model') && (method == 'create' || method == 'update')) {
+		}
+		if (!_.has(options, 'data') && _.has(arguments, 'model') && (method == 'create' || method == 'update')) {
 			params.contentType = 'application/json';
 			params.data = model.toJSON();
 		}
@@ -80,8 +80,8 @@ component {
 				params.data = {model: params.data};
 			else
 				params.data = {};
-	    }
-	    if (Backbone.emulateHTTP) {
+		}
+		if (Backbone.emulateHTTP) {
 			if (type == 'PUT' || type == 'DELETE') {
 				if (Backbone.emulateJSON)
 					params.data._method = type;
@@ -91,7 +91,7 @@ component {
 				};
 			}
 		}
-		return httpCFC.request(argumentCollection = _.extend(params, options)); 
+		return httpCFC.request(argumentCollection = _.extend(params, options));
 	};
 
 	Backbone.Model = {
@@ -115,10 +115,10 @@ component {
 
 				_.extend(Model, properties);
 
-			    if (_.has(options, 'collection')) Model.collection = options.collection;
+				if (_.has(options, 'collection')) Model.collection = options.collection;
 			   		// Model.collection = function () { return options.collection; };
 
-			   	if (_.has(options, 'parse')) 
+			   	if (_.has(options, 'parse'))
 			   		arguments.attributes = Model.parse(arguments.attributes);
 
 				if (_.has(properties, 'defaults')) {
@@ -131,7 +131,7 @@ component {
 				_.bindAll(Model);
 
 				Model.set(arguments.attributes, {silent: true});
-				
+
 				// Reset change tracking.
 				Model.changed = {};
 				Model._silent = {};
@@ -182,25 +182,25 @@ component {
 			var prev = _.has(this, '_previousAttributes') ? this._previousAttributes : {};
 
 			for (attr in attrs) {
-		        var val = attrs[attr];
+				var val = attrs[attr];
 
-		        // If the new and current value differ, record the change.
-		        if ((_.has(now, attr) && !_.isEqual(now[attr], val)) || (options.unset && _.has(now, attr))) {
+				// If the new and current value differ, record the change.
+				if ((_.has(now, attr) && !_.isEqual(now[attr], val)) || (options.unset && _.has(now, attr))) {
 					structDelete(escaped, attr);
 					if (options.silent)
-						this._silent[attr] = true; 
+						this._silent[attr] = true;
 					else
 						options.changes[attr] = true;
 				}
 
 				// Update or delete the current value.
-				if (options.unset) 
-					structDelete(now, attr); 
-				else 
+				if (options.unset)
+					structDelete(now, attr);
+				else
 					now[attr] = val;
 
 				// If the new and previous value differ, record the change. If not, then remove changes for this attribute.
-				if ((_.has(prev, attr) && !_.isEqual(prev[attr], val)) || 
+				if ((_.has(prev, attr) && !_.isEqual(prev[attr], val)) ||
 					(_.has(now, attr) != _.has(prev, attr))) {
 					this.changed[attr] = val;
 					if (!options.silent) this._pending[attr] = true;
@@ -209,11 +209,11 @@ component {
 					structDelete(this._pending, attr);
 				}
 			}
-			
+
 			// Fire the "change" events.
 			if (!options.silent) this.change(options);
-			
-			return this;		
+
+			return this;
 		},
 		has: function (required string attribute) {
 			return _.has(this.attributes, attribute);
@@ -239,11 +239,11 @@ component {
 				return true;
 			var attrs = _.extend({}, this.attributes, arguments.attributes);
 			var error = this.validate(attrs, options);
-			if (isNull(error)) 
+			if (isNull(error))
 				return true;
 			if (_.has(options, 'error')) {
 				options.error(this, error, options);
-			} 
+			}
 			else {
 				this.trigger('error', this, error, options);
 			}
@@ -260,9 +260,9 @@ component {
 		},
 		previousAttributes: function() {
 			return _.clone(this._previousAttributes);
-	    },
-	    // Call this method to manually fire a "change" event for this model and a "change:attribute" 
-	    //  event for each changed attribute. Calling this will cause all objects observing the model to update.
+		},
+		// Call this method to manually fire a "change" event for this model and a "change:attribute"
+		//  event for each changed attribute. Calling this will cause all objects observing the model to update.
 		change: function (options = {}) {
 			var changing = this._changing;
 			this._changing = true;
@@ -282,9 +282,9 @@ component {
 					var val = '';
 				this.trigger('change:' & attr, this, val, options);
 			}
-			if (changing) return this;	
+			if (changing) return this;
 
-			// Continue firing "change" events while there are pending changes.		
+			// Continue firing "change" events while there are pending changes.
 			while (!_.isEmpty(this._pending)) {
 				this._pending = {};
 				this.trigger('change', this, options);
@@ -301,11 +301,11 @@ component {
 			return this;
 		},
 		// Determine if the model has changed since the last `"change"` event.
-	    // If you specify an attribute name, determine if that attribute has changed.
-	    hasChanged: function(attr) {
+		// If you specify an attribute name, determine if that attribute has changed.
+		hasChanged: function(attr) {
 			if (!structKeyExists(arguments, 'attr')) return !_.isEmpty(this.changed);
 			return _.has(this.changed, attr);
-	    },
+		},
 		// Return an object containing all the attributes that have changed, or
 		// false if there are no changed attributes. Useful for determining what
 		// parts of a view need to be updated and/or what attributes need to be
@@ -338,7 +338,7 @@ component {
 				options.success = function () {};
 			var success = options.success;
 			options.success = function(resp, status, xhr) {
-				if (!model.set(model.parse(resp, xhr), options)) 
+				if (!model.set(model.parse(resp, xhr), options))
 					return false;
 				success(model, resp);
 			};
@@ -351,18 +351,18 @@ component {
 			// TODO
 		},
 		// **parse** converts a response into the hash of attributes to be `set` on
-	    // the model. The default implementation is just to pass the response along.
+		// the model. The default implementation is just to pass the response along.
 		parse: function(resp, xhr) {
 			return resp;
-	    },
-	    url: function() {
-	    	if (_.has(this, 'urlRoot'))
-	    		var base = _.result(this, 'urlRoot');
-	    	else if (_.has(this, 'collection') && _.has(this.collection, 'url'))
-	    		var base = _.result(this.collection, 'url');
-	    	else
+		},
+		url: function() {
+			if (_.has(this, 'urlRoot'))
+				var base = _.result(this, 'urlRoot');
+			else if (_.has(this, 'collection') && _.has(this.collection, 'url'))
+				var base = _.result(this.collection, 'url');
+			else
 				throw('A "url" property or function must be specified', 'Backbone');
-			if (this.isNew()) 
+			if (this.isNew())
 				return base;
 			return base & (right(base, 1) == '/' ? '' : '/') & urlEncodedFormat(this.id);
 		},
@@ -392,10 +392,10 @@ component {
 
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
-				    'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
-				    'include', 'invoke', 'max', 'min', 'sortBy', 'sortedIndex',
-				    'toArray', 'size', 'first', 'initial', 'rest', 'last', 'without', 'indexOf',
-				    'shuffle', 'lastIndexOf', 'isEmpty', 'groupBy'];
+					'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
+					'include', 'invoke', 'max', 'min', 'sortBy', 'sortedIndex',
+					'toArray', 'size', 'first', 'initial', 'rest', 'last', 'without', 'indexOf',
+					'shuffle', 'lastIndexOf', 'isEmpty', 'groupBy'];
 				_.each(methods, function(method) {
 					Collection[method] = function () {
 						var Underscore = new github.UnderscoreCF.Underscore(this.models);
@@ -410,9 +410,9 @@ component {
 
 				if (_.has(options, 'comparator')) Collection.comparator = options.comparator;
 
-				if (_.has(Collection, 'comparator')) 
+				if (_.has(Collection, 'comparator'))
 					Collection.comparatorMetaData = getMetaData(Collection.comparator);
-				
+
 				_.bindAll(Collection);
 
 				Collection._reset();
@@ -422,13 +422,13 @@ component {
 				Collection.initialize(argumentCollection = arguments);
 
 				Collection.cid = _.uniqueId('c');// not in Backbone.js, but useful for equality testing
-				
+
 				if (_.size(models) > 0) {
 					options.parse = _.has(options, 'parse') ? options.parse : Collection.parse;
 					Collection.reset(models, {silent: true, parse: options.parse});
 				}
 
-				
+
 				return Collection;
 			};
 		},
@@ -464,16 +464,16 @@ component {
 				}
 				models[i] = model;
 				var cid = model.cid;
-				if (_.has(model, 'id')) 
+				if (_.has(model, 'id'))
 					var id = model.id;
- 		        if (_.has(cids, cid) || _.has(this._byCid, cid) || (
-		        	(!isNull(id) && (_.has(ids, id) || _.has(this._byId, id))))) {
+ 				if (_.has(cids, cid) || _.has(this._byCid, cid) || (
+					(!isNull(id) && (_.has(ids, id) || _.has(this._byId, id))))) {
 					ArrayAppend(dups, i);
 					continue;
-		        }
-		        cids[cid] = model;
-		        if (!isNull(id))
-			        ids[id] = model;
+				}
+				cids[cid] = model;
+				if (!isNull(id))
+					ids[id] = model;
 			}
 
 			// Remove duplicates.
@@ -489,7 +489,7 @@ component {
 				var model = models[i];
 				model.on('all', this._onModelEvent, this);
 				this._byCid[model.cid] = model;
-				if (_.has(model, 'id')) 
+				if (_.has(model, 'id'))
 					this._byId[model.id] = model;
 			}
 
@@ -507,18 +507,18 @@ component {
 				}
 			}
 
-			if (_.has(this, 'comparator') && !_.has(options, 'at')) 
+			if (_.has(this, 'comparator') && !_.has(options, 'at'))
 				this.sort({silent: true});
-			if (_.has(options, 'silent') && options.silent) 
+			if (_.has(options, 'silent') && options.silent)
 				return this;
 			for (i = 1; i <= arrayLen(this.models); i++) {
 				var model = this.models[i];
-				if (!_.has(cids, model.cid)) 
+				if (!_.has(cids, model.cid))
 					continue;
 				options.index = i;
 				model.trigger('add', model, this, options);
 			}
-			return this;			
+			return this;
 		},
 		remove: function(any models = [], struct options = {}) {
 			arguments.models = _.isArray(models) ? models : [models];
@@ -527,13 +527,13 @@ component {
 					var model = this.getByCid(models[i]);
 				else if (!isNull(this.get(models[i])))
 					var model = this.get(models[i]);
-				if (isNull(model)) 
+				if (isNull(model))
 					continue;
 				if (_.has(model, 'id'))
-					StructDelete(this._byId, model.id);	
+					StructDelete(this._byId, model.id);
 				StructDelete(this._byCid, model.cid);
 				var index = this.indexOf(item = model);
-				this.models = _.splice(this.models, index, 1);						
+				this.models = _.splice(this.models, index, 1);
 				if (!_.has(options, 'silent') || !options.silent) {
 					options.index = index;
 					model.trigger('remove', model, this, options);
@@ -583,13 +583,13 @@ component {
 			// TODO: options
 		},
 		// Slice out a sub-array of models from the collection.
-	    slice: function(begin, end) {
+		slice: function(begin, end) {
 			return _.slice(this.models, begin, end);
-	    },
+		},
 		sort: function (struct options = {}) {
 			if (!_.has(this, 'comparator'))
 				throw('Cannot sort a set without a comparator', 'Backbone');
-		
+
 			// TODO: make this cooler. this is kindof a lame hack.
 			if (!_.has(this, 'comparatorMetaData'))
 				this.comparatorMetaData = getMetaData(this.comparator);
@@ -600,21 +600,21 @@ component {
 				this.models = _.sortBy(this.models, boundComparator);
 			else
 				arraySort(this.models, boundComparator);
-		
+
 			if (!_.has(options, 'silent') || !options.silent) this.trigger('reset', this, options);
-			
+
 			return this;
 		},
 		pluck: function (required string attribute) {
 			return _.map(this.models, function(model) {
-				return model.get(attribute);				
+				return model.get(attribute);
 			});
 		},
 		where: function (required struct attributes) {
 			return _.filter(this.models, function(model) {
 				var result = true;
 				_.each(attributes, function(val, key){
-					if(!model.get(key) == val) 
+					if(!model.get(key) == val)
 						result = false;
 				});
 				return result;
@@ -640,7 +640,7 @@ component {
 			}
 			this._reset();
 			this.add(models, _.extend({silent: true}, options));
-			if (!_.has(options, 'silent') || !options.silent) 
+			if (!_.has(options, 'silent') || !options.silent)
 				this.trigger('reset', this, options);
 			return this;
 		},
@@ -655,16 +655,16 @@ component {
 				var attrs = model;
 				options.collection = _.bind(function () { return this; }, this);
 				model = this.Model(attrs, options);
-				if (!model._validate(model.attributes, options)) 
+				if (!model._validate(model.attributes, options))
 					model = false;
-			} 
+			}
 			else if (!_.has(model, 'collection')) {
 				model.collection = _.bind(function () { return this; }, this);
 			}
 			return model;
-	    },
-	    // Internal method to remove a model's ties to a collection.
-	    _removeReference: function(required model) {
+		},
+		// Internal method to remove a model's ties to a collection.
+		_removeReference: function(required model) {
 			if (_.has(model, 'collection') && this.cid == model.collection().cid) {
 				structDelete(model, 'collection');
 			}
@@ -748,7 +748,7 @@ component {
 				});
 			}
 			htmlTag = htmlTag & ">#content#</#tagName#>";
-			return htmlTag;			
+			return htmlTag;
 		},
 		setElement: function(element, delegate) {
 			this.el = element;
@@ -757,12 +757,12 @@ component {
 		_ensureElement: function() {
 			if (!_.has(this, 'el')) {
 				var attrs = duplicate(this.attributes);
-				if (_.has(this, 'id')) 
+				if (_.has(this, 'id'))
 					attrs.id = this.id;
 				if (_.has(this, 'className'))
 					attrs.class = this.className;
 				this.setElement(this.make(this.tagName, attrs), false);
-			} 
+			}
 			else {
 				this.setElement(this.el, false);
 			}
