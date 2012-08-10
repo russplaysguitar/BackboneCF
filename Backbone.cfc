@@ -185,7 +185,9 @@ component {
 				var val = attrs[attr];
 
 				// If the new and current value differ, record the change.
-				if ((_.has(now, attr) && !_.isEqual(now[attr], val)) || (options.unset && _.has(now, attr))) {
+				var nowAttr = _.has(now, attr) ? now[attr] : '';
+				if ((!_.isEqual(nowAttr, val))
+					|| (options.unset && _.has(now, attr))) {
 					structDelete(escaped, attr);
 					if (options.silent)
 						this._silent[attr] = true;

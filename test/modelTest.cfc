@@ -384,6 +384,115 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.get('a'), 100);
 	}
 
+	public void function validateOnUnsetAndClear() {
+		var error = false;
+		var model = Backbone.Model.new({name: "One"});
+		model.validate = function(attrs) {
+		  if (!_.has(attrs, 'name') || attrs.name == '') {
+			error = true;
+			return "No thanks.";
+		  }
+		};
+		model.set({name: "Two"});
+		assertEquals(model.get('name'), 'Two');
+		assertEquals(error, false);
+		model.unset('name');
+		assertEquals(error, true);
+		assertEquals(model.get('name'), 'Two');
+		model.clear();
+		assertEquals(model.get('name'), 'Two');
+		structDelete(model, 'validate');
+		model.clear();
+		assertTrue(!_.has(model.attributes, 'name'));
+	}
+
+	public void function validateWithErrorCallback() {
+		var lastError = false;
+		var boundError = false;
+		var model = Backbone.Model.new();
+		model.validate = function(attrs) {
+			if (_.has(attrs, 'admin') && attrs.admin) return "Can't change admin status.";
+		};
+		var callback = function(model, error) {
+			lastError = error;
+		};
+		model.on('error', function(model, error) {
+			boundError = true;
+		});
+		var result = model.set({a: 100}, {error: callback});
+		assertEquals(result, model);
+		assertEquals(model.get('a'), 100);
+		assertEquals(lastError, false);
+		assertEquals(boundError, false);
+		result = model.set({a: 200, admin: true}, {error: callback});
+		assertEquals(result, false);
+		assertEquals(model.get('a'), 100);
+		assertEquals(lastError, "Can't change admin status.");
+		assertEquals(boundError, false);
+	}
+
+	public void function defaultsAlwaysExtendAttrs() {
+		var Defaulted = Backbone.Model.extend({
+		  defaults: {one: 1},
+		  initialize : function(attrs, opts) {
+			assertEquals(this.attributes.one, 1);
+		  }
+		});
+		var providedattrs = Defaulted({});
+		var emptyattrs = Defaulted();
+	}
+
+	// TODO: need to adjust Model structure to make this work
+	// public void function inheritClassProperties() {
+	// 	var Parent = Backbone.Model.extend({
+	//	   instancePropSame: function() {},
+	//	   instancePropDiff: function() {}
+	//	 }, {
+	//	   classProp: function() {}
+	//	 });
+	//	 var Child = _.extend(Parent, {
+	//	   instancePropDiff: function() {}
+	//	 });
+
+	//	 var adult = Parent();
+	//	 var kid   = Child();
+
+	//	 assertEquals(Child.classProp, Parent.classProp);
+	//	 // assertNotEqual(Child.classProp, undefined);
+
+	//	 assertEquals(kid.instancePropSame, adult.instancePropSame);
+	//	 // assertNotEqual(kid.instancePropSame, undefined);
+
+	//	 assertNotEqual(Child.prototype.instancePropDiff, Parent.prototype.instancePropDiff);
+	//	 // assertNotEqual(Child.prototype.instancePropDiff, undefined);
+	// }
+
+	public void function nestedChangeEventsDontClobberPrevAtts() {
+		var m = Backbone.Model.new();
+		var change1ran = false;
+		var change2ran = false;
+		m.on('change:state', function(model, newState) {
+		  // assertEquals(model.previous('state'), undefined);
+		  assertEquals(newState, 'hello');
+		  // Fire a nested change event.
+		  model.set({other: 'whatever'});
+		  change1ran = true;
+		});
+		m.on('change:state', function(model, newState) {
+		  // assertEquals(model.previous('state'), undefined);
+		  assertEquals(newState, 'hello');
+		  change2ran = true;
+		});
+		m.set({state: 'hello'});
+		assertTrue(change1ran);
+		assertTrue(change2ran);
+	}
+
+
+
+
+
+
 
 
 
