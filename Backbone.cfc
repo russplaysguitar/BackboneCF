@@ -17,7 +17,6 @@ component {
 		_callbacks: {},
 		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
 		on: function (required string eventName, required callback, context = {}) {
-
 			if (!_.has(this._callbacks, eventName))
 				this._callbacks[eventName] = [];
 
@@ -99,9 +98,6 @@ component {
 		initialize: function () {},
 		attributes: {},
 		defaults: {},
-		changedAttributes: {
-			changes: {}
-		},
 		_escapedAttributes: {},
 		_silent: {},
 		_pending: {},
@@ -135,6 +131,11 @@ component {
 				_.bindAll(Model);
 
 				Model.set(arguments.attributes, {silent: true});
+				
+				// Reset change tracking.
+				Model.changed = {};
+				Model._silent = {};
+				Model._pending = {};
 
 				Model._previousAttributes = _.clone(arguments.attributes);
 
@@ -199,11 +200,10 @@ component {
 					now[attr] = val;
 
 				// If the new and previous value differ, record the change. If not, then remove changes for this attribute.
-				if ((_.has(prev, attr) && !_.isEqual(prev[attr], val)) || (_.has(now, attr) != _.has(prev, attr))) {
+				if ((_.has(prev, attr) && !_.isEqual(prev[attr], val)) || 
+					(_.has(now, attr) != _.has(prev, attr))) {
 					this.changed[attr] = val;
-				
-				if (!options.silent) 
-					this._pending[attr] = true;
+					if (!options.silent) this._pending[attr] = true;
 				} else {
 					structDelete(this.changed, attr);
 					structDelete(this._pending, attr);
@@ -222,10 +222,10 @@ component {
 			var opts = _.extend({}, arguments.options, { unset: true });
 			return this.set(key = arguments.key, options = opts);
 		},
-		clear: function (struct options = { silent: false }) {
-			_.each(this.attributes, function (val, key) {
-				this.unset(key, options);
-			});
+		// Clear all attributes on the model, firing `"change"` unless you choose to silence it.
+		clear: function (struct options = {}) {
+			arguments.options = _.extend({}, arguments.options, {unset: true});
+			return this.set(_.clone(this.attributes), options);
 		},
 		// Destroy this model on the server if it was already persisted.
 		// Optimistically removes the model from its collection, if it has one.

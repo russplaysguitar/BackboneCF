@@ -240,6 +240,25 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.get('two'), '');
 	}
 	
+	public void function change_hasChanged_changedAttrs_prev_prevAttr() {
+		var model = Backbone.Model.new({name : "Tim", age : 10});
+	    assertEquals(model.changedAttributes(), false);
+	    model.on('change', function() {
+			assertTrue(model.hasChanged('name'), 'name changed');
+			assertTrue(!model.hasChanged('age'), 'age did not');
+			assertTrue(_.isEqual(model.changedAttributes(), {name : 'Rob'}), 'changedAttributes returns the changed attrs');
+			assertEquals(model.previous('name'), 'Tim');
+			assertTrue(_.isEqual(model.previousAttributes(), {name : "Tim", age : 10}), 'previousAttributes is correct');
+	    });
+	    assertEquals(model.hasChanged(), false);
+	    model.set({name : 'Rob'}, {silent : true});
+	    assertEquals(model.hasChanged(), true);
+	    assertEquals(model.hasChanged('name'), true);
+	    model.change();
+	    assertEquals(model.get('name'), 'Rob');
+	}
+	
+	
 	
 	
 	
