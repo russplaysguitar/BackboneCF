@@ -258,6 +258,72 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.get('name'), 'Rob');
 	}
 
+	public void function changeWithOptions() {
+		var value = false;
+		var model = Backbone.Model.new({name: 'Rob'});
+		model.on('change', function(model, options) {
+			value = options.prefix & model.get('name');
+		});
+		model.set({name: 'Bob'}, {silent: true});
+		model.change({prefix: 'Mr. '});
+		assertEquals(value, 'Mr. Bob');
+		model.set({name: 'Sue'}, {prefix: 'Ms. '});
+		assertEquals(value, 'Ms. Sue');
+	}
+
+	public void function changeAfterInitialize() {
+		var changed = 0;
+		var attrs = {id: 1, label: 'c'};
+		var obj = Backbone.Model.new(attrs);
+		obj.on('change', function() { changed += 1; });
+		obj.set(attrs);
+		assertEquals(changed, 0);
+	}
+
+	// TODO
+	// public void function saveWithinChangeEvent() {
+	// 	var model = Backbone.Model.new({firstName : "Taylor", lastName: "Swift"});
+	//	 model.on('change', function () {
+	// 		model.save();
+	// 		assertTrue(_.isEqual(lastRequest.model, model));
+	//	 });
+	//	 model.set({lastName: 'Hicks'});
+	// }
+
+	// TODO
+	// public void function validateAfterSave() {
+	// 	var lastError, model = Backbone.Model.new();
+	//	 model.validate = function(attrs) {
+	// 		if (attrs.admin) return "Can't change admin status.";
+	//	 };
+	//	 model.sync = function(method, model, options) {
+	// 		options.success({admin: true});
+	//	 };
+	//	 model.save('', {error: function(model, error) {
+	// 		lastError = error;
+	//	 }});
+
+	//	 assertEquals(lastError, "Can't change admin status.");
+	// }
+
+	public void function isValid() {
+		var model = Backbone.Model.new({valid: true});
+		model.validate = function(attrs) {
+			if (!attrs.valid) return "invalid";
+		};
+		assertEquals(model.isValid(), true);
+		assertEquals(model.set({valid: false}), false);
+		assertEquals(model.isValid(), true);
+		var result = model.set('valid', false, {silent: true});
+		assertTrue(!_.isBoolean(result) || result != false);
+		assertEquals(model.isValid(), false);
+	}
+
+
+
+
+
+
 
 
 
