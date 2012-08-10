@@ -238,7 +238,7 @@ component {
 			if (silent || !_.has(this, 'validate'))
 				return true;
 			var attrs = _.extend({}, this.attributes, arguments.attributes);
-			var error = this.validate(attrs, options);
+			var error = this.validate(argumentCollection = {attrs = attrs, options = options, this = this});
 			if (isNull(error))
 				return true;
 			if (_.has(options, 'error')) {
@@ -250,7 +250,7 @@ component {
 			return false;
 		},
 		isValid: function () {
-			return isNull(this.validate(this.attributes));
+			return isNull(this.validate(argumentCollection = {attrs = this.attributes, this = this}));
 		},
 		previous: function(required attr) {
 			if (!_.has(this._previousAttributes, attr))

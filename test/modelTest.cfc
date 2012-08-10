@@ -319,8 +319,70 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.isValid(), false);
 	}
 
+	// TODO
+	// test("Model: save", 2, function() {
+	//	 doc.save({title : "Henry V"});
+	//	 equal(lastRequest.method, 'update');
+	//	 ok(_.isEqual(lastRequest.model, doc));
+	//   });
 
+	// TODO
+	//   test("Model: save in positional style", 1, function() {
+	//	 var model = new Backbone.Model();
+	//	 model.sync = function(method, model, options) {
+	//	   options.success();
+	//	 };
+	//	 model.save('title', 'Twelfth Night');
+	//	 equal(model.get('title'), 'Twelfth Night');
+	//   });
 
+	// TODO
+	//   test("Model: fetch", 2, function() {
+	//	 doc.fetch();
+	//	 equal(lastRequest.method, 'read');
+	//	 ok(_.isEqual(lastRequest.model, doc));
+	//   });
+
+	// TODO
+	//   test("Model: destroy", 3, function() {
+	//	 doc.destroy();
+	//	 equal(lastRequest.method, 'delete');
+	//	 ok(_.isEqual(lastRequest.model, doc));
+
+	//	 var newModel = new Backbone.Model;
+	//	 equal(newModel.destroy(), false);
+	//   });
+
+	// TODO
+	// test("Model: non-persisted destroy", 1, function() {
+	//	 var a = new Backbone.Model({ 'foo': 1, 'bar': 2, 'baz': 3});
+	//	 a.sync = function() { throw "should not be called"; };
+	//	 a.destroy();
+	//	 ok(true, "non-persisted model should not call sync");
+	//   });
+
+	public void function validate() {
+		var lastError = false;
+		var model = Backbone.Model.new();
+		model.validate = function(attrs) {
+			var this_admin = _.has(this.attributes, 'admin') ? this.get('admin') : '';
+			var attrs_admin = _.has(attrs, 'admin') ? attrs.admin : '';
+			if (attrs_admin != this_admin) return "Can't change admin status.";
+		};
+		model.on('error', function(model, error) {
+			lastError = error;
+		});
+		var result = model.set({a: 100});
+		assertEquals(result, model);
+		assertEquals(model.get('a'), 100);
+		assertEquals(lastError, false);
+		result = model.set({admin: true}, {silent: true});
+		assertEquals(model.get('admin'), true);
+		result = model.set({a: 200, admin: false});
+		assertEquals(lastError, "Can't change admin status.");
+		assertEquals(result, false);
+		assertEquals(model.get('a'), 100);
+	}
 
 
 
