@@ -726,6 +726,43 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(changeTimes, 1);
 	}
 
+	public void function nestedSetMultipleTimes() {
+		var model = Backbone.Model.new();
+		var changeTimes = 0;
+		model.on('change:b', function() {
+			changeTimes++;
+		});
+		model.on('change:a', function() {
+		  model.set({b: true});
+		  model.set({b: true});
+		});
+		model.set({a: true});
+		assertEquals(changeTimes, 1);
+	}
+
+	public void function backboneWrapErrorTriggersError() {
+		var errorCallbackRan = false;
+		var resp = {};
+	    var options = {};
+	    var model = Backbone.Model.new();
+	    var error = function (_model, _resp, _options) {
+	      assertEquals(model, _model);
+	      assertEquals(resp,  _resp);
+	      assertEquals(options, _options);
+	      errorCallbackRan = true;
+	    };
+	    model.on('error', error);
+	    var callback = Backbone.wrapError('', model, options);
+	    callback(model, resp);
+	    callback(resp);
+	    callback = Backbone.wrapError(error, model, options);
+	    callback(model, resp);
+	    callback(resp);
+	    assertTrue(errorCallbackRan);
+	}
+	
+	
+
 	
 	
 	

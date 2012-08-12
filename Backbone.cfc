@@ -13,6 +13,18 @@ component {
 		emulateHTTP: false
 	};
 
+	// Wrap an optional error callback with a fallback error event.
+	Backbone.wrapError = function(onError, originalModel, options) {
+		return function(model, resp) {
+			resp = _.isEqual(model, originalModel) ? resp : model;
+			if (_.has(arguments, 'onError') && onError != '') {
+				onError(originalModel, resp, options);
+			} else {
+				originalModel.trigger('error', originalModel, resp, options);
+			}
+		};
+	};
+
 	Backbone.Events = {
 		_callbacks: {},
 		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
