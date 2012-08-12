@@ -761,6 +761,65 @@ component extends="mxunit.framework.TestCase" {
 	    assertTrue(errorCallbackRan);
 	}
 	
+	public void function isValidReturnsTrueInTheAbsenceOfValidate() {
+		var model = Backbone.Model.new();
+	    structDelete(model, 'validate');
+	    assertTrue(model.isValid());
+	}
+	
+	public void function clearDoesNotAlterOptions() {
+		var model = Backbone.Model.new();
+	    var options = {};
+	    model.clear(options);
+	    assertTrue(!_.has(options, 'unset'));
+	}
+	
+	public void function unsetDoesNotAlterOptions() {
+		var model = Backbone.Model.new();
+	    var options = {};
+	    model.unset('x', options);
+	    assertTrue(!_.has(options, 'unset'));
+	}
+	
+	// TODO
+	// test("#1355 - `options` is passed to success callbacks", 3, function() {
+	//     var model = new Backbone.Model();
+	//     var opts = {
+	//       success: function( model, resp, options ) {
+	//         ok(options);
+	//       }
+	//     };
+	//     model.sync = function(method, model, options) {
+	//       options.success();
+	//     };
+	//     model.save({id: 1}, opts);
+	//     model.fetch(opts);
+	//     model.destroy(opts);
+	//   });
+
+	//   test("#1412 - Trigger 'sync' event.", 3, function() {
+	//     var model = new Backbone.Model({id: 1});
+	//     model.sync = function(method, model, options) { options.success(); };
+	//     model.on('sync', function() { ok(true); });
+	//     model.fetch();
+	//     model.save();
+	//     model.destroy();
+	//   });
+
+	//   test("#1365 - Destroy: New models execute success callback.", 2, function() {
+	//     new Backbone.Model()
+	//     .on('sync', function() { ok(false); })
+	//     .on('destroy', function(){ ok(true); })
+	//     .destroy({ success: function(){ ok(true); }});
+	//   });
+	 // test("#1433 - Save: An invalid model cannot be persisted.", 1, function() {
+	 //    var model = new Backbone.Model;
+	 //    model.validate = function(){ return 'invalid'; };
+	 //    model.sync = function(){ ok(false); };
+	 //    strictEqual(model.save(), false);
+	 //  });
+	
+	
 	
 
 	

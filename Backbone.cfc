@@ -264,6 +264,7 @@ component {
 			return false;
 		},
 		isValid: function () {
+			if (!_.has(this, 'validate')) return true;
 			return isNull(this.validate(argumentCollection = {attrs = this.attributes, this = this}));
 		},
 		previous: function(required attr) {
