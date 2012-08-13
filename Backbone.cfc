@@ -29,36 +29,91 @@ component {
 		_callbacks: {},
 		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
 		on: function (required string eventName, required callback, context = {}) {
+
+			// handle multiple events
+			var events = listToArray(eventName, " ");
+			if (arrayLen(events) > 1) {
+				_.each(events, function (event) {
+					this.on(event, callback, context);
+				}, this);
+
+				return this;
+			}
+
 			if (!_.has(this._callbacks, eventName))
 				this._callbacks[eventName] = [];
 
-			if (!_.isEmpty(context))
-				callback = _.bind(callback, context);
+			var event = {
+				callback: callback,
+				ctx: function () { return context; }
+			};
 
-			// TODO: allow callback to be referenced by name or something so off() can remove it specifically
-			ArrayAppend(this._callbacks[eventName], callback);
+			ArrayAppend(this._callbacks[eventName], event);
 
 			return this;
 		},
 		// Remove one or many callbacks. If context is null, removes all callbacks with that function. If callback is null, removes all callbacks for the event. If events is null, removes all bound callbacks for all events.
 		off: function (required string eventName, callback, context) {
-			if (_.has(this._callbacks, eventName)) {
-				structDelete(this._callbacks, eventName);
+
+			// handle multiple events
+			var events = listToArray(eventName, " ");
+			if (arrayLen(events) > 1) {
+				var args = _.clone(arguments);
+				_.each(events, function (event) {
+					args.eventName = event;
+					this.off(argumentCollection = args);
+				}, this);
+
+				return this;
 			}
+
+			if (_.has(this._callbacks, eventName)) {
+				if (_.has(arguments, 'callback')) {
+					// remove specific callback for event
+					var args = arguments;
+					var result = _.reject(this._callbacks[eventName], function (event) {
+						if (_.has(args, 'context')) {
+							var ctx = event.ctx();
+							return event.callback.Equals(callback) && ctx.Equals(context);
+						}
+						else {
+							return event.callback.Equals(callback);
+						}
+					});
+					this._callbacks[eventName] = result;
+				}
+				else {
+					// remove all callbacks for event
+					structDelete(this._callbacks, eventName);
+				}
+			}
+
 			return this;
 		},
 		// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
 		trigger: function (required string eventName, struct model = this, val = '', struct changedAttributes = {}) {
-			// TODO: handle list of events
+			
+			// handle multiple events
+			var events = listToArray(eventName, " ");
+			if (arrayLen(events) > 1) {
+				_.each(events, function (event) {
+					this.trigger(event, model, val, changedAttributes);
+				}, this);
+
+				return this;
+			}
+
 			if (_.has(this._callbacks, eventName) && eventName != 'all') {
-				var funcsArray = this._callbacks[eventName];
-				_.each(funcsArray, function (func) {
+				var events = this._callbacks[eventName];
+				_.each(events, function (event) {
+					var func = _.bind(event.callback, event.ctx());
 					func(model, val, changedAttributes);
 				});
 			}
 			if (_.has(this._callbacks, 'all') && eventName != 'all') {
-				var funcsArray = this._callbacks['all'];
-				_.each(funcsArray, function (func) {
+				var events = this._callbacks['all'];
+				_.each(events, function (event) {
+					var func = _.bind(event.callback, event.ctx());
 					func(eventName, model, val, changedAttributes);
 				});
 			}
@@ -683,8 +738,9 @@ component {
 			if (_.has(model, 'collection') && this.cid == model.collection().cid) {
 				structDelete(model, 'collection');
 			}
-			if (_.has(model, 'off'))
+			if (_.has(model, 'off')) {
 				model.off('all', this._onModelEvent, this);
+			}
 		},
 		// Internal method called every time a model in the set fires an event. Sets need to update their indexes when models change ids. All other events simply proxy through. "add" and "remove" events that originate in other collections are ignored.
 		_onModelEvent: function(required string eventName, required struct model, collection, options = {}) {
