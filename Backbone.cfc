@@ -26,65 +26,61 @@ component {
 	};
 
 	Backbone.Events = {
-		_callbacks: {},
 		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
 		on: function (required string eventName, required callback, context = {}) {
 
-			// handle multiple events
-			var events = listToArray(eventName, " ");
-			if (arrayLen(events) > 1) {
-				_.each(events, function (event) {
-					this.on(event, callback, context);
-				}, this);
-
-				return this;
+			// init _callbacks
+			if (!_.has(this, '_callbacks')) {
+				this._callbacks = {};
 			}
 
-			if (!_.has(this._callbacks, eventName))
-				this._callbacks[eventName] = [];
+			// handle multiple events
+			var events = listToArray(eventName, " ");
 
-			var event = {
-				callback: callback,
-				ctx: function () { return context; }
-			};
+			for (eventName in events) {
+				if (!_.has(this._callbacks, eventName))
+					this._callbacks[eventName] = [];
 
-			ArrayAppend(this._callbacks[eventName], event);
+				var event = {
+					callback: callback,
+					ctx: function () { return context; }
+				};
+
+				ArrayAppend(this._callbacks[eventName], event);
+			}
+
 
 			return this;
 		},
 		// Remove one or many callbacks. If context is null, removes all callbacks with that function. If callback is null, removes all callbacks for the event. If events is null, removes all bound callbacks for all events.
 		off: function (required string eventName, callback, context) {
 
+			// no callbacks defined
+			if (!_.has(this, '_callbacks')) return this;
+
 			// handle multiple events
 			var events = listToArray(eventName, " ");
-			if (arrayLen(events) > 1) {
-				var args = _.clone(arguments);
-				_.each(events, function (event) {
-					args.eventName = event;
-					this.off(argumentCollection = args);
-				}, this);
 
-				return this;
-			}
-
-			if (_.has(this._callbacks, eventName)) {
-				if (_.has(arguments, 'callback')) {
-					// remove specific callback for event
-					var args = arguments;
-					var result = _.reject(this._callbacks[eventName], function (event) {
-						if (_.has(args, 'context')) {
-							var ctx = event.ctx();
-							return event.callback.Equals(callback) && ctx.Equals(context);
-						}
-						else {
-							return event.callback.Equals(callback);
-						}
-					});
-					this._callbacks[eventName] = result;
-				}
-				else {
-					// remove all callbacks for event
-					structDelete(this._callbacks, eventName);
+			for (eventName in events) {
+				if (_.has(this._callbacks, eventName)) {
+					if (_.has(arguments, 'callback')) {
+						// remove specific callback for event
+						var args = arguments;
+						var result = _.reject(this._callbacks[eventName], function (event) {
+							if (_.has(args, 'context')) {
+								var ctx = event.ctx();
+								return event.callback.Equals(callback) && ctx.Equals(context);
+							}
+							else {
+								return event.callback.Equals(callback);
+							}
+						});
+						this._callbacks[eventName] = result;
+					}
+					else {
+						// remove all callbacks for event
+						structDelete(this._callbacks, eventName);
+					}
 				}
 			}
 
@@ -93,30 +89,29 @@ component {
 		// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
 		trigger: function (required string eventName, struct model = this, val = '', struct changedAttributes = {}) {
 			
+			// no callbacks defined
+			if (!_.has(this, '_callbacks')) return this;
+
 			// handle multiple events
 			var events = listToArray(eventName, " ");
-			if (arrayLen(events) > 1) {
-				_.each(events, function (event) {
-					this.trigger(event, model, val, changedAttributes);
-				}, this);
 
-				return this;
+			for (eventName in events) {
+				if (_.has(this._callbacks, eventName) && eventName != 'all') {
+					var events = this._callbacks[eventName];
+					_.each(events, function (event) {
+						var func = _.bind(event.callback, event.ctx());
+						func(model, val, changedAttributes);
+					});
+				}
+				if (_.has(this._callbacks, 'all') && eventName != 'all') {
+					var events = this._callbacks['all'];
+					_.each(events, function (event) {
+						var func = _.bind(event.callback, event.ctx());
+						func(eventName, model, val, changedAttributes);
+					});
+				}
 			}
 
-			if (_.has(this._callbacks, eventName) && eventName != 'all') {
-				var events = this._callbacks[eventName];
-				_.each(events, function (event) {
-					var func = _.bind(event.callback, event.ctx());
-					func(model, val, changedAttributes);
-				});
-			}
-			if (_.has(this._callbacks, 'all') && eventName != 'all') {
-				var events = this._callbacks['all'];
-				_.each(events, function (event) {
-					var func = _.bind(event.callback, event.ctx());
-					func(eventName, model, val, changedAttributes);
-				});
-			}
 			return this;
 		}
 	};
