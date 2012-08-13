@@ -67,7 +67,6 @@ component {
 
 			// handle multiple events
 			var events = _.has(arguments, 'eventName') ? listToArray(eventName, " ") : [];
-
 			for (eventName in events) {
 				if (_.has(this._callbacks, eventName)) {
 					if (_.has(arguments, 'callback')) {
@@ -98,6 +97,18 @@ component {
 					return _.reject(events, function (event) {
 						var ctx = event.ctx();
 						return ctx.equals(con);
+					});
+				});
+				this._callbacks = result;
+			}
+
+			// remove all matching callbacks
+			if (arrayLen(events) == 0 && _.has(arguments, 'callback')) {
+				var cb = arguments.callback;
+				var result = _.map(this._callbacks, function(events) {
+					return _.reject(events, function (event) {
+						var callback = event.callback;
+						return callback.equals(cb);
 					});
 				});
 				this._callbacks = result;

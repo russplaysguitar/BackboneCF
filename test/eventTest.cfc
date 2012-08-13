@@ -173,6 +173,38 @@ component extends="mxunit.framework.TestCase" {
 	    obj.trigger('x y');
 	}
 	
+	public void function removeAllEventsForASpecificCallback() {
+		var obj = _.extend({}, Backbone.Events);
+	    var success = function() { assertTrue(true); };
+	    var fail = function() { assertTrue(false); };
+	    obj.on('x y all', success);
+	    obj.on('x y all', fail);
+	    obj.off(callback = fail);
+	    obj.trigger('x y');
+	}
+	
+	public void function offDoesNotSkipConsecutiveEvents() {
+		var obj = _.extend({}, Backbone.Events);
+	    obj.on('event', function() { assertTrue(false); }, obj);
+	    obj.on('event', function() { assertTrue(false); }, obj);
+	    obj.off(context = obj);
+	    obj.trigger('event');
+	}
+	
+	// TODO
+	// test("off is chainable", 3, function() {
+	//     var obj = _.extend({}, Backbone.Events);
+	//     // With no events
+	//     ok(obj.off() === obj);
+	//     // When removing all events
+	//     obj.on('event', function(){}, obj);
+	//     ok(obj.off() === obj);
+	//     // When removing some events
+	//     obj.on('event', function(){}, obj);
+	//     ok(obj.off('event') === obj);
+	//   });
+	
+	
 	
 	
 	
