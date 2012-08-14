@@ -118,7 +118,7 @@ component {
 		},
 		// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
 		trigger: function (required string eventName, struct model = this, val = '', struct changedAttributes = {}) {
-			
+
 			// no callbacks defined
 			if (!_.has(this, '_callbacks')) return this;
 
@@ -185,7 +185,15 @@ component {
 				};
 			}
 		}
-		return httpCFC.request(argumentCollection = _.extend(params, options));
+
+		if (!_.has(params, 'data')) params.data = '';
+
+		// Make the request, allowing the user to override any http request options.
+		return Backbone.ajax(argumentCollection = _.extend(params, options));
+	};
+
+	Backbone.ajax = function () {
+		return httpCFC.request(argumentCollection = arguments);
 	};
 
 	Backbone.Model = {
