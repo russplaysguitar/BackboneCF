@@ -492,236 +492,236 @@ component extends="mxunit.framework.TestCase" {
 		var changed = 0;
 		var changeRan = false;
 		var model = Backbone.Model.new({a: ''});
-	    model.on('change', function() {
-	    	changeRan = true;
+		model.on('change', function() {
+			changeRan = true;
 			assertTrue(this.hasChanged('a'));
-	    }, model);
-	    model.on('change:a', function() {
+		}, model);
+		model.on('change:a', function() {
 			changed++;
-	    });
-	    model.set({a: 'differentValue'});
-	    assertEquals(changed, 1);
-	    assertTrue(changeRan);
+		});
+		model.set({a: 'differentValue'});
+		assertEquals(changed, 1);
+		assertTrue(changeRan);
 	}
-	
+
 	public void function changeAttCallbacksShouldFireAfterAllChangesHaveOccurred() {
 		var model = Backbone.Model.new();
 		var assertionRan = false;
 
-	    var assertion = function() {
-	      assertEquals(model.get('a'), 'a');
-	      assertEquals(model.get('b'), 'b');
-	      assertEquals(model.get('c'), 'c');
-	      assertionRan = true;
-	    };
+		var assertion = function() {
+		  assertEquals(model.get('a'), 'a');
+		  assertEquals(model.get('b'), 'b');
+		  assertEquals(model.get('c'), 'c');
+		  assertionRan = true;
+		};
 
-	    model.on('change:a', assertion);
-	    model.on('change:b', assertion);
-	    model.on('change:c', assertion);
+		model.on('change:a', assertion);
+		model.on('change:b', assertion);
+		model.on('change:c', assertion);
 
-	    model.set({a: 'a', b: 'b', c: 'c'});
+		model.set({a: 'a', b: 'b', c: 'c'});
 
-	    assertTrue(assertionRan);
+		assertTrue(assertionRan);
 	}
-	
+
 	public void function setWithAttributesProperty() {
 		var model = Backbone.Model.new();
-	    model.set({attributes: true});
-	    assertTrue(model.has('attributes'));
+		model.set({attributes: true});
+		assertTrue(model.has('attributes'));
 	}
-	
+
 	public void function setValueRegardlessOfEqualityOrChange() {
 		var model = Backbone.Model.new({x: []});
-	    var a = [];
-	    model.set({x: a});
-	    assertEquals(model.get('x'), a);
+		var a = [];
+		model.set({x: a});
+		assertEquals(model.get('x'), a);
 	}
 
 	public void function unsetFiresChangeForBlankAttributes() {
 		var model = Backbone.Model.new({x: ''});
 		var changeRan = false;
-	    model.on('change:x', function(){ changeRan = true; });
-	    model.unset('x');
-	    assertTrue(changeRan);
+		model.on('change:x', function(){ changeRan = true; });
+		model.unset('x');
+		assertTrue(changeRan);
 	}
-	
+
 	public void function setBlankValues() {
 		var model = Backbone.Model.new({x: ''});
-	    assertTrue(_.has(model.attributes, 'x'));
+		assertTrue(_.has(model.attributes, 'x'));
 	}
-	
+
 	public void function changeFiresChangeAtt() {
 		var model = Backbone.Model.new({x: 1});
 		var changeRan = false;
-	    model.set({x: 2}, {silent: true});
-	    model.on('change:x', function(){ changeRan = true; });
-	    model.change();
-	    assertTrue(changeRan);
+		model.set({x: 2}, {silent: true});
+		model.on('change:x', function(){ changeRan = true; });
+		model.change();
+		assertTrue(changeRan);
 	}
-	
+
 	public void function hasChangedIsFalseAfterOriginalValuesAreSet() {
 		var model = Backbone.Model.new({x: 1});
-	    model.on('change:x', function(){ assertTrue(false); });
-	    model.set({x: 2}, {silent: true});
-	    assertTrue(model.hasChanged());
-	    model.set({x: 1}, {silent: true});
-	    assertTrue(!model.hasChanged());
+		model.on('change:x', function(){ assertTrue(false); });
+		model.set({x: 2}, {silent: true});
+		assertTrue(model.hasChanged());
+		model.set({x: 1}, {silent: true});
+		assertTrue(!model.hasChanged());
 	}
-	
+
 	// TODO
 	  // test("save with `wait` succeeds without `validate`", 1, function() {
 	  //   var model = new Backbone.Model();
 	  //   model.save({x: 1}, {wait: true});
 	  //   ok(lastRequest.model === model);
 	  // });
-	
+
 	public void function hasChangedForFalsyKeys() {
 		var model = Backbone.Model.new();
-	    model.set({x: true}, {silent: true});
-	    assertTrue(!model.hasChanged(0));
-	    assertTrue(!model.hasChanged(''));
+		model.set({x: true}, {silent: true});
+		assertTrue(!model.hasChanged(0));
+		assertTrue(!model.hasChanged(''));
 	}
-	
+
 	public void function previousForFalsyKeys() {
 		var model = Backbone.Model.new({0: true, '': true});
-	    model.set({0: false, '': false}, {silent: true});
-	    assertEquals(model.previous(0), true);
-	    assertEquals(model.previous(''), true);
+		model.set({0: false, '': false}, {silent: true});
+		assertEquals(model.previous(0), true);
+		assertEquals(model.previous(''), true);
 	}
-	
+
 	// TODO
 	// test("`save` with `wait` sends correct attributes", 5, function() {
-	//     var changed = 0;
-	//     var model = new Backbone.Model({x: 1, y: 2});
-	//     model.on('change:x', function() { changed++; });
-	//     model.save({x: 3}, {wait: true});
-	//     assertEquals(JSON.parse(ajaxParams.data), {x: 3, y: 2});
-	//     equal(model.get('x'), 1);
-	//     equal(changed, 0);
-	//     lastRequest.options.success({});
-	//     equal(model.get('x'), 3);
-	//     equal(changed, 1);
+	//	 var changed = 0;
+	//	 var model = new Backbone.Model({x: 1, y: 2});
+	//	 model.on('change:x', function() { changed++; });
+	//	 model.save({x: 3}, {wait: true});
+	//	 assertEquals(JSON.parse(ajaxParams.data), {x: 3, y: 2});
+	//	 equal(model.get('x'), 1);
+	//	 equal(changed, 0);
+	//	 lastRequest.options.success({});
+	//	 equal(model.get('x'), 3);
+	//	 equal(changed, 1);
 	//   });
 
 	//   test("a failed `save` with `wait` doesn't leave attributes behind", 1, function() {
-	//     var model = new Backbone.Model;
-	//     model.save({x: 1}, {wait: true});
-	//     equal(model.get('x'), void 0);
+	//	 var model = new Backbone.Model;
+	//	 model.save({x: 1}, {wait: true});
+	//	 equal(model.get('x'), void 0);
 	//   });
 
 	//   test("#1030 - `save` with `wait` results in correct attributes if success is called during sync", 2, function() {
-	//     var model = new Backbone.Model({x: 1, y: 2});
-	//     model.sync = function(method, model, options) {
-	//       options.success();
-	//     };
-	//     model.on("change:x", function() { ok(true); });
-	//     model.save({x: 3}, {wait: true});
-	//     equal(model.get('x'), 3);
+	//	 var model = new Backbone.Model({x: 1, y: 2});
+	//	 model.sync = function(method, model, options) {
+	//	   options.success();
+	//	 };
+	//	 model.on("change:x", function() { ok(true); });
+	//	 model.save({x: 3}, {wait: true});
+	//	 equal(model.get('x'), 3);
 	//   });
 
 	//   test("save with wait validates attributes", 1, function() {
-	//     var model = new Backbone.Model();
-	//     model.validate = function() { ok(true); };
-	//     model.save({x: 1}, {wait: true});
+	//	 var model = new Backbone.Model();
+	//	 model.validate = function() { ok(true); };
+	//	 model.save({x: 1}, {wait: true});
 	//   });
-	
+
 	public void function nestedSetDuringChangeAtt() {
 		var events = [];
-	    var model = Backbone.Model.new();
-	    model.on('all', function(event) { arrayAppend(events, event, true); });
-	    model.on('change', function() {
+		var model = Backbone.Model.new();
+		model.on('all', function(event) { arrayAppend(events, event, true); });
+		model.on('change', function() {
 			model.set({z: true}, {silent:true});
-	    });
-	    model.on('change:x', function() {
+		});
+		model.on('change:x', function() {
 			model.set({y: true});
-	    });
-	    model.set({x: true});
-	    assertEquals(events, ['change:y', 'change:x', 'change']);
-	    events = [];
-	    model.change();
-	    assertEquals(events, ['change:z', 'change']);
+		});
+		model.set({x: true});
+		assertEquals(events, ['change:y', 'change:x', 'change']);
+		events = [];
+		model.change();
+		assertEquals(events, ['change:z', 'change']);
 	}
-	
+
 	public void function nestedChangeOnlyFiresOnce() {
 		var model = Backbone.Model.new();
 		var changeRan = 0;
-	    model.on('change', function() {
-	    	changeRan++;
+		model.on('change', function() {
+			changeRan++;
 			model.change();
-	    });
-	    model.set({x: true});
-	    assertEquals(changeRan, 1);
+		});
+		model.set({x: true});
+		assertEquals(changeRan, 1);
 	}
-	
+
 	public void function noChangeEventIfNoChanges() {
 		var model = Backbone.Model.new();
-	    model.on('change', function() { assertTrue(false); });
-	    model.change();
+		model.on('change', function() { assertTrue(false); });
+		model.change();
 	}
-	
+
 	public void function nestedSetDuringChange() {
 		var count = 0;
-	    var model = Backbone.Model.new();
-	    model.on('change', function() {
-	      switch(count++) {
-	        case 0:
-	          assertEquals(this.changedAttributes(), {x: true});
-	          assertTrue(isNull(model.previous('x')));
-	          model.set({y: true});
-	          break;
-	        case 1:
-	          assertEquals(this.changedAttributes(), {y: true});
-	          assertEquals(model.previous('x'), true);
-	          model.set({z: true});
-	          break;
-	        case 2:
-	          assertEquals(this.changedAttributes(), {z: true});
-	          assertEquals(model.previous('y'), true);
-	          break;
-	        default:
-	          assertTrue(false);
-	      }
-	    }, model);
-	    model.set({x: true});
+		var model = Backbone.Model.new();
+		model.on('change', function() {
+		  switch(count++) {
+			case 0:
+			  assertEquals(this.changedAttributes(), {x: true});
+			  assertTrue(isNull(model.previous('x')));
+			  model.set({y: true});
+			  break;
+			case 1:
+			  assertEquals(this.changedAttributes(), {y: true});
+			  assertEquals(model.previous('x'), true);
+			  model.set({z: true});
+			  break;
+			case 2:
+			  assertEquals(this.changedAttributes(), {z: true});
+			  assertEquals(model.previous('y'), true);
+			  break;
+			default:
+			  assertTrue(false);
+		  }
+		}, model);
+		model.set({x: true});
 	}
-	
+
 	public void function nestedChangeWithSilent() {
 		var count = 0;
-	    var model = Backbone.Model.new();
-	    var changeRan = false;
-	    model.on('change:y', function() { changeRan = true; });
-	    model.on('change', function() {
-	      switch(count++) {
-	        case 0:
-	          assertEquals(this.changedAttributes(), {x: true});
-	          model.set({y: true}, {silent: true});
-	          break;
-	        case 1:
-	          assertEquals(this.changedAttributes(), {y: true, z: true});
-	          break;
-	        default:
-	          assertTrue(false);
-	      }
-	    }, model);
-	    model.set({x: true});
-	    model.set({z: true});
-	    assertTrue(changeRan);
+		var model = Backbone.Model.new();
+		var changeRan = false;
+		model.on('change:y', function() { changeRan = true; });
+		model.on('change', function() {
+		  switch(count++) {
+			case 0:
+			  assertEquals(this.changedAttributes(), {x: true});
+			  model.set({y: true}, {silent: true});
+			  break;
+			case 1:
+			  assertEquals(this.changedAttributes(), {y: true, z: true});
+			  break;
+			default:
+			  assertTrue(false);
+		  }
+		}, model);
+		model.set({x: true});
+		model.set({z: true});
+		assertTrue(changeRan);
 	}
-	
+
 	public void function multipleNestedChangesWithSilent() {
 		var model = Backbone.Model.new();
 		var value = false;
 		var changeTimes = 0;
-	    model.on('change:x', function() {
+		model.on('change:x', function() {
 			model.set({y: 1}, {silent: true});
 			model.set({y: 2});
-	    });
-	    model.on('change:y', function(model, val) {
+		});
+		model.on('change:y', function(model, val) {
 			value = val;
 			changeTimes++;
-	    });
-	    model.set({x: true});
-	    model.change();
+		});
+		model.set({x: true});
+		model.change();
 		assertEquals(value, 2);
 		assertEquals(changeTimes, 1);
 	}
@@ -743,116 +743,81 @@ component extends="mxunit.framework.TestCase" {
 	public void function backboneWrapErrorTriggersError() {
 		var errorCallbackRan = false;
 		var resp = {};
-	    var options = {};
-	    var model = Backbone.Model.new();
-	    var error = function (_model, _resp, _options) {
-	      assertEquals(model, _model);
-	      assertEquals(resp,  _resp);
-	      assertEquals(options, _options);
-	      errorCallbackRan = true;
-	    };
-	    model.on('error', error);
-	    var callback = Backbone.wrapError('', model, options);
-	    callback(model, resp);
-	    callback(resp);
-	    callback = Backbone.wrapError(error, model, options);
-	    callback(model, resp);
-	    callback(resp);
-	    assertTrue(errorCallbackRan);
+		var options = {};
+		var model = Backbone.Model.new();
+		var error = function (_model, _resp, _options) {
+		  assertEquals(model, _model);
+		  assertEquals(resp,  _resp);
+		  assertEquals(options, _options);
+		  errorCallbackRan = true;
+		};
+		model.on('error', error);
+		var callback = Backbone.wrapError('', model, options);
+		callback(model, resp);
+		callback(resp);
+		callback = Backbone.wrapError(error, model, options);
+		callback(model, resp);
+		callback(resp);
+		assertTrue(errorCallbackRan);
 	}
-	
+
 	public void function isValidReturnsTrueInTheAbsenceOfValidate() {
 		var model = Backbone.Model.new();
-	    structDelete(model, 'validate');
-	    assertTrue(model.isValid());
+		structDelete(model, 'validate');
+		assertTrue(model.isValid());
 	}
-	
+
 	public void function clearDoesNotAlterOptions() {
 		var model = Backbone.Model.new();
-	    var options = {};
-	    model.clear(options);
-	    assertTrue(!_.has(options, 'unset'));
+		var options = {};
+		model.clear(options);
+		assertTrue(!_.has(options, 'unset'));
 	}
-	
+
 	public void function unsetDoesNotAlterOptions() {
 		var model = Backbone.Model.new();
-	    var options = {};
-	    model.unset('x', options);
-	    assertTrue(!_.has(options, 'unset'));
+		var options = {};
+		model.unset('x', options);
+		assertTrue(!_.has(options, 'unset'));
 	}
-	
+
 	// TODO
 	// test("#1355 - `options` is passed to success callbacks", 3, function() {
-	//     var model = new Backbone.Model();
-	//     var opts = {
-	//       success: function( model, resp, options ) {
-	//         ok(options);
-	//       }
-	//     };
-	//     model.sync = function(method, model, options) {
-	//       options.success();
-	//     };
-	//     model.save({id: 1}, opts);
-	//     model.fetch(opts);
-	//     model.destroy(opts);
+	//	 var model = new Backbone.Model();
+	//	 var opts = {
+	//	   success: function( model, resp, options ) {
+	//		 ok(options);
+	//	   }
+	//	 };
+	//	 model.sync = function(method, model, options) {
+	//	   options.success();
+	//	 };
+	//	 model.save({id: 1}, opts);
+	//	 model.fetch(opts);
+	//	 model.destroy(opts);
 	//   });
 
 	//   test("#1412 - Trigger 'sync' event.", 3, function() {
-	//     var model = new Backbone.Model({id: 1});
-	//     model.sync = function(method, model, options) { options.success(); };
-	//     model.on('sync', function() { ok(true); });
-	//     model.fetch();
-	//     model.save();
-	//     model.destroy();
+	//	 var model = new Backbone.Model({id: 1});
+	//	 model.sync = function(method, model, options) { options.success(); };
+	//	 model.on('sync', function() { ok(true); });
+	//	 model.fetch();
+	//	 model.save();
+	//	 model.destroy();
 	//   });
 
 	//   test("#1365 - Destroy: New models execute success callback.", 2, function() {
-	//     new Backbone.Model()
-	//     .on('sync', function() { ok(false); })
-	//     .on('destroy', function(){ ok(true); })
-	//     .destroy({ success: function(){ ok(true); }});
+	//	 new Backbone.Model()
+	//	 .on('sync', function() { ok(false); })
+	//	 .on('destroy', function(){ ok(true); })
+	//	 .destroy({ success: function(){ ok(true); }});
 	//   });
 	 // test("#1433 - Save: An invalid model cannot be persisted.", 1, function() {
-	 //    var model = new Backbone.Model;
-	 //    model.validate = function(){ return 'invalid'; };
-	 //    model.sync = function(){ ok(false); };
-	 //    strictEqual(model.save(), false);
+	 //	var model = new Backbone.Model;
+	 //	model.validate = function(){ return 'invalid'; };
+	 //	model.sync = function(){ ok(false); };
+	 //	strictEqual(model.save(), false);
 	 //  });
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
