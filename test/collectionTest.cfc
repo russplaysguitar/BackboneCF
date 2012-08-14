@@ -478,9 +478,11 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function accessModelDotCollectionInABrandNewModel() {
+		var setWasCalled = false;
 		var col = Backbone.Collection.new();
 		var Model = Backbone.Model.extend({
 			set: function(attrs) {
+				setWasCalled = true;
 				assertEquals(attrs.prop, 'value');
 				assertEquals(this.collection().cid, col.cid);
 				return this;
@@ -488,6 +490,7 @@ component extends="mxunit.framework.TestCase" {
 		});
 		col.model = Model;
 		col.create({prop: 'value'});
+		assertTrue(setWasCalled);
 	}
 
 	public void function removeItsOwnReferenceToTheModelsArray() {
@@ -650,12 +653,16 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function setUp() {
 		variables.Backbone  = new backbone.Backbone();
+		variables._ = new github.UnderscoreCF.Underscore();
+
 		variables.a		 = Backbone.Model.new({id: 3, label: 'a'});
 		variables.b		 = Backbone.Model.new({id: 2, label: 'b'});
 		variables.c		 = Backbone.Model.new({id: 1, label: 'c'});
 		variables.d		 = Backbone.Model.new({id: 0, label: 'd'});
 		variables.col	   = Backbone.Collection.new([a,b,c,d]);
 		variables.otherCol  = Backbone.Collection.new();
+		
+		variables.lastRequest = {};
 
 		Backbone.sync = function(method, model, options) {
 			lastRequest = {
@@ -663,9 +670,9 @@ component extends="mxunit.framework.TestCase" {
 				model: model,
 				options: options
 			};
+			return lastRequest;
 		};
 
-		_ = new github.UnderscoreCF.Underscore();
 	}
 
 	public void function tearDown() {

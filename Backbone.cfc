@@ -432,6 +432,10 @@ component {
 		toJSON: function () {
 			return serializeJSON(this.attributes);
 		},
+		// Proxy `Backbone.sync` by default.
+		sync: function() {
+			return Backbone.sync(argumentCollection = arguments);
+		},
 		clone: function () {
 			return this.new(this.attributes);
 		},
@@ -452,19 +456,81 @@ component {
 		// Set a hash of model attributes, and sync the model to the server.
 		// If the server returns an attributes hash that differs, the model's
 		// state will be `set` again.
-		save: function(key, value, options) {
-			// TODO
+		save: function(key = '', value = '', options) {
+			var done = false;
+
+			// Handle both `("key", value)` and `({key: value})` -style calls.
+			if (_.isObject(key)) {
+				var attrs = key;
+				arguments.options = value;
+			} else {
+				var attrs = {};
+				if (key != '' && value != '')
+					attrs[key] = value;
+			}
+			arguments.options = _.has(arguments, 'options') ? _.clone(options) : {};
+			arguments.options.wait = _.has(arguments.options, 'wait') ? arguments.options.wait : false;
+
+			// If we're "wait"-ing to set changed attributes, validate early.
+			if (options.wait) {
+				if (!this._validate(attrs, options)) return false;
+				var current = _.clone(this.attributes);
+			}
+
+			// Regular saves `set` attributes before persisting to the server.
+			var silentOptions = _.extend({}, options, {silent: true});
+			var attrsIsntNull = !_.isEmpty(attrs);
+			var opts = options.wait ? silentOptions : options;
+			if (attrsIsntNull && !isStruct(this.set(attrs, opts))) {
+				return false;
+			}
+
+			// Do not persist invalid models.
+			if (!attrsIsntNull && !this.isValid()) return false;
+
+			// After a successful server-side save, the client is (optionally)
+			// updated with the server-side state.
+			var model = this;
+			var success = options.success;
+			options.success = function(resp, status, xhr) {
+				done = true;
+				var serverAttrs = model.parse(resp, xhr);
+				var atts = isStruct(attrs) ? attrs : {};
+				if (options.wait) serverAttrs = _.extend(atts, serverAttrs);
+				if (!model.set(serverAttrs, options)) return false;
+				if (success) success(model, resp, options);
+				model.trigger('sync', model, resp, options);
+			};
+
+			// Finish configuring and sending the http request.
+			var defaultOnError = function () {};
+			var err = _.has(options, 'error') ? options.error : defaultOnError;
+			options.error = Backbone.wrapError(err, model, options);
+			var method = this.isNew() ? 'create' : 'update';
+			var xhr = this.sync(method, model, options);
+
+			// When using `wait`, reset attributes to original values unless
+			// `success` has been called already.
+			if (!done && options.wait) {
+				this.clear(silentOptions);
+				if (!isNull(current)) this.set(current, silentOptions);
+			}
+
+			return xhr;
 		},
 		// **parse** converts a response into the hash of attributes to be `set` on
 		// the model. The default implementation is just to pass the response along.
 		parse: function(resp, xhr) {
 			return resp;
 		},
+		// Default URL for the model's representation on the server -- if you're
+		// using Backbone's restful methods, override this to change the endpoint
+		// that will be called.
 		url: function() {
 			if (_.has(this, 'urlRoot'))
 				var base = _.result(this, 'urlRoot');
-			else if (_.has(this, 'collection') && _.has(this.collection, 'url'))
-				var base = _.result(this.collection, 'url');
+			else if (_.has(this, 'collection') && _.has(this.collection(), 'url'))
+				var base = _.result(this.collection(), 'url');
 			else
 				throw('A "url" property or function must be specified', 'Backbone');
 			if (this.isNew())
@@ -794,12 +860,13 @@ component {
 			this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection, changedAttributes: options});
 		},
 		create: function (struct attributes = {}, struct options = {}) {
+			var coll = this;
 			var model = this._prepareModel(attributes, options);
 			if (!isStruct(model)) return false;
 			if (!_.has(options, 'wait') || !options.wait) this.add(model, options);
 			var success = _.has(options, 'success') ? options.success : false;
 			options.success = function(model, resp, options) {
-				if (_.has(options, 'wait') && options.wait) this.add(model, options);
+				if (_.has(options, 'wait') && options.wait) coll.add(model, options);
 				if (_.isFunction(success)) success(model, resp, options);
 			};
 			model.save(options = options);
