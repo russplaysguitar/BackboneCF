@@ -456,16 +456,16 @@ component {
 		// Set a hash of model attributes, and sync the model to the server.
 		// If the server returns an attributes hash that differs, the model's
 		// state will be `set` again.
-		save: function(key = '', value = '', options) {
+		save: function(key = '', value = '', struct options) {
 			var done = false;
 
 			// Handle both `("key", value)` and `({key: value})` -style calls.
-			if (_.isObject(key)) {
+			if (!_.isString(key)) {
 				var attrs = key;
-				arguments.options = value;
+				arguments.options = isStruct(value) ? value : {};
 			} else {
 				var attrs = {};
-				if (key != '' && value != '')
+				if (key != '' && !isNull(value))
 					attrs[key] = value;
 			}
 			arguments.options = _.has(arguments, 'options') ? _.clone(options) : {};
@@ -491,7 +491,8 @@ component {
 			// After a successful server-side save, the client is (optionally)
 			// updated with the server-side state.
 			var model = this;
-			var success = options.success;
+			var nullSuccess = function () {};
+			var success = _.has(options, 'success') ? options.success : nullSuccess;
 			options.success = function(resp, status, xhr) {
 				done = true;
 				var serverAttrs = model.parse(resp, xhr);
