@@ -37,6 +37,112 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(data.length, 123);
 	}
 
+	public void function updateWithEmulateHTTPandEmulateJSON() {
+		Backbone.emulateHTTP = Backbone.emulateJSON = true;
+		library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'});
+		assertEquals(urlDecode(lastRequest.url), '/library/2-the-tempest');
+		assertEquals(lastRequest.type, 'POST');
+		assertEquals(lastRequest.dataType, 'json');
+		assertEquals(lastRequest.data._method, 'PUT');
+		var data = deserializeJSON(lastRequest.data.model);
+		assertEquals(data.id, '2-the-tempest');
+		assertEquals(data.author, 'Tim Shakespeare');
+		assertEquals(data.length, 123);
+		Backbone.emulateHTTP = Backbone.emulateJSON = false;
+	}
+
+	public void function updateWithEmulateHTTP() {
+		Backbone.emulateHTTP = true;
+		library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'});
+		assertEquals(urlDecode(lastRequest.url), '/library/2-the-tempest');
+		assertEquals(lastRequest.type, 'POST');
+		assertEquals(lastRequest.contentType, 'application/json');
+		var data = deserializeJSON(lastRequest.data);
+		assertEquals(data.id, '2-the-tempest');
+		assertEquals(data.author, 'Tim Shakespeare');
+		assertEquals(data.length, 123);
+		Backbone.emulateHTTP = false;
+	}
+
+	public void function updateWithJustEmulateJSON() {
+		Backbone.emulateJSON = true;
+		library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'});
+		assertEquals(urldecode(lastRequest.url), '/library/2-the-tempest');
+		assertEquals(lastRequest.type, 'PUT');
+		assertEquals(lastRequest.contentType, 'application/x-www-form-urlencoded');
+		var data = deserializeJSON(lastRequest.data.model);
+		assertEquals(data.id, '2-the-tempest');
+		assertEquals(data.author, 'Tim Shakespeare');
+		assertEquals(data.length, 123);
+		Backbone.emulateJSON = false;
+	}
+
+	public void function readModel() {
+		library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'});
+		library.first().fetch();
+		assertEquals(urlDecode(lastRequest.url), '/library/2-the-tempest');
+		assertEquals(lastRequest.type, 'GET');
+		assertTrue(_.isEmpty(lastRequest.data));
+	}
+
+	public void function destroy() {
+		library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'});
+		library.first().destroy({wait: true});
+		assertEquals(urlDecode(lastRequest.url), '/library/2-the-tempest');
+		assertEquals(lastRequest.type, 'DELETE');
+		assertEquals(lastRequest.data, '');
+	}
+
+	public void function destroyWithEmulateHTTP() {
+		library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'});
+		Backbone.emulateHTTP = Backbone.emulateJSON = true;
+		library.first().destroy();
+		assertEquals(urlDecode(lastRequest.url), '/library/2-the-tempest');
+		assertEquals(lastRequest.type, 'POST');
+		assertEquals(lastRequest.data, {"_method":"DELETE"});
+		Backbone.emulateHTTP = Backbone.emulateJSON = false;
+	}
+
+	public void function urlError() {
+		var model = Backbone.Model.new();
+		var threwError = false;
+		try {
+			model.fetch();
+		}
+		catch(any e) {
+			threwError = true;
+		}
+		model.fetch({url: '/one/two'});
+		assertEquals(lastRequest.url, '/one/two');
+		assertTrue(threwError);
+	}
+
+	public void function optionsIsOptional() {
+		var model = Backbone.Model.new();
+		model.url = '/test';
+		Backbone.sync('create', model);
+	}
+
+	public void function backboneDotAjax() {
+		var settingsOuter = {};
+		Backbone.ajax = function(){
+			settingsOuter = arguments;
+		};
+		var model = Backbone.Model.new();
+		model.url = '/test';
+		Backbone.sync('create', model);
+		assertEquals(settingsOuter.url, '/test');
+	}
+
+
+
+
+
+
+
+
+
+
 
 
 

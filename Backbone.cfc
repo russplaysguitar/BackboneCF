@@ -335,7 +335,32 @@ component {
 		// Optimistically removes the model from its collection, if it has one.
 		// If `wait: true` is passed, waits for the server to respond before removal.
 		destroy: function (options) {
-			// TODO
+			arguments.options = _.has(arguments, 'options') ? _.clone(arguments.options) : {};
+			var model = this;
+			var success = _.has(options, 'success') ? options.success : false;
+
+			var destroy = function() {
+				model.trigger('destroy', model, model.collection(), options);
+			};
+
+			options.wait = _.has(options, 'wait') ? options.wait : false;
+			options.error = _.has(options, 'error') ? options.error : '';
+
+			options.success = function(resp) {
+				if (options.wait || model.isNew()) destroy();
+				if (!isBoolean(success) || !success) success(model, resp, options);
+				if (!model.isNew()) model.trigger('sync', model, resp, options);
+			};
+
+			if (this.isNew()) {
+				options.success();
+				return false;
+			}
+
+			options.error = Backbone.wrapError(options.error, model, options);
+			var xhr = this.sync('delete', this, options);
+			if (!options.wait) destroy();
+			return xhr;
 		},
 		_validate: function (struct attributes, struct options = { silent:false }) {
 			var silent = _.has(options, 'silent') && options.silent;
