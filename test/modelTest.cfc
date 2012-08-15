@@ -33,42 +33,45 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.get('value'), 2);
 	}
 
-	// TODO
-	// public void function url() {
-	// 	doc.urlRoot = '';
-	//	 assertEquals(doc.url(), '/collection/1-the-tempest');
-	//	 doc.collection.url = '/collection/';
-	//	 assertEquals(doc.url(), '/collection/1-the-tempest');
-	//	 doc.collection = false;
-	//	 // raises(function() { doc.url(); });
-	//	 doc.collection = collection;
-	// }
+	public void function url() {
+		var errorThrown = false;
+		structDelete(doc, 'urlRoot');
+		assertEquals(urlDecode(doc.url()), '/collection/1-the-tempest');
+		doc.collection().url = '/collection/';
+		assertEquals(urlDecode(doc.url()), '/collection/1-the-tempest');
+		doc.collection = false;
+		try {
+			doc.url();
+		}
+		catch (any e) {
+			errorThrown = true;
+		}
+		assertTrue(errorThrown);
+		doc.collection = collection;
+	}
 
-	// TODO
-// test("Model: url when using urlRoot, and uri encoding", 2, function() {
-//	 var Model = Backbone.Model.extend({
-//	   urlRoot: '/collection'
-//	 });
-//	 var model = new Model();
-//	 equal(model.url(), '/collection');
-//	 model.set({id: '+1+'});
-//	 equal(model.url(), '/collection/%2B1%2B');
-//   });
+	public void function urlWhenUsingUrlRootAndUriEncoding() {
+		var Model = Backbone.Model.extend({
+			urlRoot: '/collection'
+		});
+		var m = Model();
+		assertEquals(m.url(), '/collection');
+		m.set({id: '+1+'});
+		assertEquals(m.url(), '/collection/%2B1%2B');
+	}
 
-	// TODO
-//   test("Model: url when using urlRoot as a function to determine urlRoot at runtime", 2, function() {
-//	 var Model = Backbone.Model.extend({
-//	   urlRoot: function() {
-//		 return '/nested/' + this.get('parent_id') + '/collection';
-//	   }
-//	 });
+	public void function urlWhenUsingUrlRootAsAFunctionToDetermineUrlRootAtRuntime() {
+		var Model = Backbone.Model.extend({
+			urlRoot: function() {
+				return '/nested/' & this.get('parent_id') & '/collection';
+			}
+		});
 
-//	 var model = new Model({parent_id: 1});
-//	 equal(model.url(), '/nested/1/collection');
-//	 model.set({id: 2});
-//	 equal(model.url(), '/nested/1/collection/2');
-//   });
-
+		var m = Model({parent_id: 1});
+		assertEquals(m.url(), '/nested/1/collection');
+		m.set({id: 2});
+		assertEquals(m.url(), '/nested/1/collection/2');
+	}
 
 	public void function clone() {
 		var a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3});
@@ -280,15 +283,17 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(changed, 0);
 	}
 
-	// TODO
-	// public void function saveWithinChangeEvent() {
-	// 	var model = Backbone.Model.new({firstName : "Taylor", lastName: "Swift"});
-	//	 model.on('change', function () {
-	// 		model.save();
-	// 		assertTrue(_.isEqual(lastRequest.model, model));
-	//	 });
-	//	 model.set({lastName: 'Hicks'});
-	// }
+	public void function saveWithinChangeEvent() {
+		var model = Backbone.Model.new({firstName : "Taylor", lastName: "Swift"});
+		var changeRan = false;
+		model.on('change', function () {
+			model.save();
+			// assertTrue(_.isEqual(lastRequest.model, model));
+			changeRan = true;
+		});
+		model.set({lastName: 'Hicks'});
+		assertTrue(changeRan);
+	}
 
 	// TODO
 	// public void function validateAfterSave() {
@@ -827,6 +832,8 @@ component extends="mxunit.framework.TestCase" {
 
 		_ = new github.UnderscoreCF.Underscore();
 
+		variables.Backbone.Model.urlRoot = '/';
+
 		var klass = Backbone.Collection.extend({
 			url: function() { return '/collection'; }
 		});
@@ -840,6 +847,13 @@ component extends="mxunit.framework.TestCase" {
 		});
 		variables.collection = klass();
 		collection.add(doc);
+
+		variables.Backbone.sync = function(method, model, options) {
+			lastRequest = arguments;
+			return arguments;
+		};
+		Backbone.ajax = function(params) { ajaxParams = params; };
+
 	}
 
 	public void function tearDown() {
