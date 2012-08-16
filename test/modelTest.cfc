@@ -604,27 +604,31 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(changed, 1);
 	}
 	
-	//   test("a failed `save` with `wait` doesn't leave attributes behind", 1, function() {
-	//	 var model = new Backbone.Model;
-	//	 model.save({x: 1}, {wait: true});
-	//	 equal(model.get('x'), void 0);
-	//   });
+	public void function aFailedSaveWithWaitDoesntLeaveAttributesBehind() {
+		var model = Backbone.Model.new();
+		model.save({x: 1}, {wait: true});
+		assertTrue(isNull(model.get('x')));
+	}
 
-	//   test("#1030 - `save` with `wait` results in correct attributes if success is called during sync", 2, function() {
-	//	 var model = new Backbone.Model({x: 1, y: 2});
-	//	 model.sync = function(method, model, options) {
-	//	   options.success();
-	//	 };
-	//	 model.on("change:x", function() { ok(true); });
-	//	 model.save({x: 3}, {wait: true});
-	//	 equal(model.get('x'), 3);
-	//   });
-
-	//   test("save with wait validates attributes", 1, function() {
-	//	 var model = new Backbone.Model();
-	//	 model.validate = function() { ok(true); };
-	//	 model.save({x: 1}, {wait: true});
-	//   });
+	public void function saveWithWaitResultsInCorrectAttributesIfSuccessIsCalledDuringSync() {
+		var model = Backbone.Model.new({x: 1, y: 2});
+		model.sync = function(method, model, options) {
+			options.success();
+		};
+		var changeXran = false;
+		model.on("change:x", function() { changeXran = true; });
+		model.save({x: 3}, {wait: true});
+		assertEquals(model.get('x'), 3);
+		assertTrue(changeXran);
+	}
+	
+	public void function saveWithWaitValidatesAttributes() {
+		var model = Backbone.Model.new();
+		var validateRan = false;
+		model.validate = function() { validateRan = true; };
+		model.save({x: 1}, {wait: true});
+		assertTrue(validateRan);
+	}
 
 	public void function nestedSetDuringChangeAtt() {
 		var events = [];
@@ -782,22 +786,24 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(!_.has(options, 'unset'));
 	}
 
-	// TODO
-	// test("#1355 - `options` is passed to success callbacks", 3, function() {
-	//	 var model = new Backbone.Model();
-	//	 var opts = {
-	//	   success: function( model, resp, options ) {
-	//		 ok(options);
-	//	   }
-	//	 };
-	//	 model.sync = function(method, model, options) {
-	//	   options.success();
-	//	 };
-	//	 model.save({id: 1}, opts);
-	//	 model.fetch(opts);
-	//	 model.destroy(opts);
-	//   });
-
+	public void function optionsIsPassedToSuccessCallbacks() {
+		var model = Backbone.Model.new();
+		var successRan = false;
+		var opts = {
+			success: function( model, resp, options ) {
+				assertTrue(!IsNull(options));
+				successRan = true;
+			}
+		};
+		model.sync = function(method, model, options) {
+			options.success();
+		};
+		model.save({id: 1}, opts);
+		model.fetch(opts);
+		model.destroy(opts);
+		assertTrue(successRan);
+	}
+	
 	//   test("#1412 - Trigger 'sync' event.", 3, function() {
 	//	 var model = new Backbone.Model({id: 1});
 	//	 model.sync = function(method, model, options) { options.success(); };

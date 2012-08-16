@@ -363,7 +363,7 @@ component {
 			options.error = Backbone.wrapError(options.error, model, options);
 			var xhr = this.sync('delete', this, options);
 			if (!options.wait) destroy();
-			return xhr;
+			if (!isNull(xhr)) return xhr;
 		},
 		_validate: function (struct attributes, struct options = { silent:false }) {
 			var silent = _.has(options, 'silent') && options.silent;
@@ -475,9 +475,10 @@ component {
 				options.success = function () {};
 			var success = options.success;
 			options.success = function(resp, status, xhr) {
-				if (!model.set(model.parse(resp, xhr), options))
+				var setResult = model.set(model.parse(resp, xhr), options);
+				if (isBoolean(setResult) && !setResult)
 					return false;
-				success(model, resp);
+				success(model, resp, options);
 			};
 			var result = Backbone.Sync('read', model, options);
 		},
