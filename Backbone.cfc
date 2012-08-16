@@ -15,9 +15,10 @@ component {
 
 	// Wrap an optional error callback with a fallback error event.
 	Backbone.wrapError = function(onError, originalModel, options) {
+		var args = arguments;
 		return function(model, resp) {
 			resp = _.isEqual(model, originalModel) ? resp : model;
-			if (_.has(arguments, 'onError') && onError != '') {
+			if (_.has(args, 'onError') && onError != '') {
 				onError(originalModel, resp, options);
 			} else {
 				originalModel.trigger('error', originalModel, resp, options);
@@ -367,7 +368,7 @@ component {
 			if (silent || !_.has(this, 'validate'))
 				return true;
 			var attrs = _.extend({}, this.attributes, arguments.attributes);
-			var error = this.validate(argumentCollection = {attrs = attrs, options = options, this = this});
+			var error = this.validate(argumentCollection = {attrs: attrs, options: options, this: this});
 			if (isNull(error))
 				return true;
 			if (_.has(options, 'error')) {
@@ -380,7 +381,7 @@ component {
 		},
 		isValid: function () {
 			if (!_.has(this, 'validate')) return true;
-			return isNull(this.validate(argumentCollection = {attrs = this.attributes, this = this}));
+			return isNull(this.validate(argumentCollection = {attrs: this.attributes, this: this}));
 		},
 		previous: function(required attr) {
 			if (!_.has(this._previousAttributes, attr))
@@ -518,13 +519,13 @@ component {
 			var model = this;
 			var nullSuccess = function () {};
 			var success = _.has(options, 'success') ? options.success : nullSuccess;
-			options.success = function(resp, status, xhr) {
+			options.success = function(resp, status, xhr = '') {
 				done = true;
 				var serverAttrs = model.parse(resp, xhr);
 				var atts = isStruct(attrs) ? attrs : {};
 				if (options.wait) serverAttrs = _.extend(atts, serverAttrs);
 				if (!model.set(serverAttrs, options)) return false;
-				if (success) success(model, resp, options);
+				success(model, resp, options);
 				model.trigger('sync', model, resp, options);
 			};
 
@@ -542,7 +543,7 @@ component {
 				if (!isNull(current)) this.set(current, silentOptions);
 			}
 
-			return xhr;
+			if (!isNull(xhr)) return xhr;
 		},
 		// **parse** converts a response into the hash of attributes to be `set` on
 		// the model. The default implementation is just to pass the response along.

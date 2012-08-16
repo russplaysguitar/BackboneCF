@@ -295,21 +295,21 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(changeRan);
 	}
 
-	// TODO
-	// public void function validateAfterSave() {
-	// 	var lastError, model = Backbone.Model.new();
-	//	 model.validate = function(attrs) {
-	// 		if (attrs.admin) return "Can't change admin status.";
-	//	 };
-	//	 model.sync = function(method, model, options) {
-	// 		options.success({admin: true});
-	//	 };
-	//	 model.save('', {error: function(model, error) {
-	// 		lastError = error;
-	//	 }});
+	public void function validateAfterSave() {
+		var lastError = false; 
+		var model = Backbone.Model.new();
+		model.validate = function(attrs) {
+			if (_.has(attrs, 'admin') && attrs.admin) return "Can't change admin status.";
+		};
+		model.sync = function(method, model, options) {
+			options.success({admin: true});
+		};
+		model.save({}, {error: function(model, error) {
+			lastError = error;
+		}});
 
-	//	 assertEquals(lastError, "Can't change admin status.");
-	// }
+		assertEquals(lastError, "Can't change admin status.");
+	}
 
 	public void function isValid() {
 		var model = Backbone.Model.new({valid: true});
@@ -852,7 +852,7 @@ component extends="mxunit.framework.TestCase" {
 			lastRequest = arguments;
 			return arguments;
 		};
-		Backbone.ajax = function(params) { ajaxParams = params; };
+		Backbone.ajax = function(params) { ajaxParams = params; return arguments; };
 
 	}
 
