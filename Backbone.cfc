@@ -338,18 +338,20 @@ component {
 		destroy: function (options) {
 			arguments.options = _.has(arguments, 'options') ? _.clone(arguments.options) : {};
 			var model = this;
-			var success = _.has(options, 'success') ? options.success : false;
+			var nullFunction = function () {};
+			var success = _.has(options, 'success') ? options.success : nullFunction;
 
 			var destroy = function() {
-				model.trigger('destroy', model, model.collection(), options);
+				var collection = _.has(model, 'collection') ? model.collection() : {};
+				model.trigger('destroy', model, collection, options);
 			};
 
 			options.wait = _.has(options, 'wait') ? options.wait : false;
 			options.error = _.has(options, 'error') ? options.error : '';
 
-			options.success = function(resp) {
+			options.success = function(resp = '') {
 				if (options.wait || model.isNew()) destroy();
-				if (!isBoolean(success) || !success) success(model, resp, options);
+				success(model, resp, options);
 				if (!model.isNew()) model.trigger('sync', model, resp, options);
 			};
 
@@ -519,12 +521,13 @@ component {
 			var model = this;
 			var nullSuccess = function () {};
 			var success = _.has(options, 'success') ? options.success : nullSuccess;
-			options.success = function(resp, status, xhr = '') {
+			options.success = function(resp = '', status, xhr = '') {
 				done = true;
 				var serverAttrs = model.parse(resp, xhr);
 				var atts = isStruct(attrs) ? attrs : {};
 				if (options.wait) serverAttrs = _.extend(atts, serverAttrs);
-				if (!model.set(serverAttrs, options)) return false;
+				var setResult = model.set(serverAttrs, options);
+				if (isBoolean(setResult) && !setResult) return false;
 				success(model, resp, options);
 				model.trigger('sync', model, resp, options);
 			};

@@ -324,39 +324,38 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.isValid(), false);
 	}
 
-	// TODO
-	// test("Model: save", 2, function() {
-	//	 doc.save({title : "Henry V"});
-	//	 equal(lastRequest.method, 'update');
-	//	 ok(_.isEqual(lastRequest.model, doc));
-	//   });
+	public void function save() {
+		doc.save({title : "Henry V"});
+		assertEquals(lastRequest.method, 'update');
+		assertTrue(_.isEqual(lastRequest.model, doc));
+		
+	}
 
-	// TODO
-	//   test("Model: save in positional style", 1, function() {
-	//	 var model = new Backbone.Model();
-	//	 model.sync = function(method, model, options) {
-	//	   options.success();
-	//	 };
-	//	 model.save('title', 'Twelfth Night');
-	//	 equal(model.get('title'), 'Twelfth Night');
-	//   });
+	public void function saveInPositionalStyle() {
+		var model = Backbone.Model.new();
+		model.sync = function(method, model, options) {
+			options.success();
+		};
+		model.save('title', 'Twelfth Night');
+		assertEquals(model.get('title'), 'Twelfth Night');
+	}
+	
+	public void function fetch() {
+		doc.fetch();
+		assertEquals(lastRequest.method, 'read');
+		assertTrue(_.isEqual(lastRequest.model, doc));
+	}
+	
+	public void function destroy() {
+		doc.destroy();
+		assertEquals(lastRequest.method, 'delete');
+		assertTrue(_.isEqual(lastRequest.model, doc));
 
-	// TODO
-	//   test("Model: fetch", 2, function() {
-	//	 doc.fetch();
-	//	 equal(lastRequest.method, 'read');
-	//	 ok(_.isEqual(lastRequest.model, doc));
-	//   });
-
-	// TODO
-	//   test("Model: destroy", 3, function() {
-	//	 doc.destroy();
-	//	 equal(lastRequest.method, 'delete');
-	//	 ok(_.isEqual(lastRequest.model, doc));
-
-	//	 var newModel = new Backbone.Model;
-	//	 equal(newModel.destroy(), false);
-	//   });
+		var newModel = Backbone.Model.new();
+		assertEquals(newModel.destroy(), false);
+		
+	}
+	
 
 	// TODO
 	// test("Model: non-persisted destroy", 1, function() {
