@@ -356,15 +356,13 @@ component extends="mxunit.framework.TestCase" {
 		
 	}
 	
-
-	// TODO
-	// test("Model: non-persisted destroy", 1, function() {
-	//	 var a = new Backbone.Model({ 'foo': 1, 'bar': 2, 'baz': 3});
-	//	 a.sync = function() { throw "should not be called"; };
-	//	 a.destroy();
-	//	 ok(true, "non-persisted model should not call sync");
-	//   });
-
+	public void function nonPersistedDestroy() {
+		var a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3});
+		a.sync = function() { throw "should not be called"; };
+		a.destroy();
+		assertTrue(true, "non-persisted model should not call sync");
+	}
+	
 	public void function validate() {
 		var lastError = false;
 		var model = Backbone.Model.new();
@@ -448,27 +446,28 @@ component extends="mxunit.framework.TestCase" {
 
 	// TODO: need to adjust Model structure to make this work
 	// public void function inheritClassProperties() {
+	// 	var nullFunc = function () {};
 	// 	var Parent = Backbone.Model.extend({
-	//	   instancePropSame: function() {},
-	//	   instancePropDiff: function() {}
-	//	 }, {
-	//	   classProp: function() {}
-	//	 });
-	//	 var Child = _.extend(Parent, {
-	//	   instancePropDiff: function() {}
-	//	 });
+	// 	   instancePropSame: nullFunc,
+	// 	   instancePropDiff: nullFunc
+	// 	 }, {
+	// 	   classProp: nullFunc
+	// 	 });
+	// 	 var Child = _.extend(Parent, {
+	// 		instancePropDiff: nullFunc
+	// 	 });
 
-	//	 var adult = Parent();
-	//	 var kid   = Child();
+	// 	 var adult = Parent();
+	// 	 var kid   = Child();
 
-	//	 assertEquals(Child.classProp, Parent.classProp);
-	//	 // assertNotEqual(Child.classProp, undefined);
+	// 	 assertEquals(Child.classProp, Parent.classProp);
+	// 	 // assertNotEqual(Child.classProp, undefined);
 
-	//	 assertEquals(kid.instancePropSame, adult.instancePropSame);
-	//	 // assertNotEqual(kid.instancePropSame, undefined);
+	// 	 assertEquals(kid.instancePropSame, adult.instancePropSame);
+	// 	 // assertNotEqual(kid.instancePropSame, undefined);
 
-	//	 assertNotEqual(Child.prototype.instancePropDiff, Parent.prototype.instancePropDiff);
-	//	 // assertNotEqual(Child.prototype.instancePropDiff, undefined);
+	// 	 assertNotEqual(Child.prototype.instancePropDiff, Parent.prototype.instancePropDiff);
+	// 	 // assertNotEqual(Child.prototype.instancePropDiff, undefined);
 	// }
 
 	public void function nestedChangeEventsDontClobberPrevAtts() {
@@ -572,12 +571,11 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(!model.hasChanged());
 	}
 
-	// TODO
-	  // test("save with `wait` succeeds without `validate`", 1, function() {
-	  //   var model = new Backbone.Model();
-	  //   model.save({x: 1}, {wait: true});
-	  //   ok(lastRequest.model === model);
-	  // });
+	public void function saveWithWaitSucceedsWithoutValidate() {
+		var model = Backbone.Model.new();
+		model.save({x: 1}, {wait: true});
+		assertEquals(lastRequest.model, model);
+	}
 
 	public void function hasChangedForFalsyKeys() {
 		var model = Backbone.Model.new();
@@ -593,20 +591,19 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(model.previous(''), true);
 	}
 
-	// TODO
-	// test("`save` with `wait` sends correct attributes", 5, function() {
-	//	 var changed = 0;
-	//	 var model = new Backbone.Model({x: 1, y: 2});
-	//	 model.on('change:x', function() { changed++; });
-	//	 model.save({x: 3}, {wait: true});
-	//	 assertEquals(JSON.parse(ajaxParams.data), {x: 3, y: 2});
-	//	 equal(model.get('x'), 1);
-	//	 equal(changed, 0);
-	//	 lastRequest.options.success({});
-	//	 equal(model.get('x'), 3);
-	//	 equal(changed, 1);
-	//   });
-
+	public void function saveWithWaitSendsCorrectAttributes() {
+		var changed = 0;
+		var model = Backbone.Model.new({x: 1, y: 2});
+		model.on('change:x', function() { changed++; });
+		model.save({x: 3}, {wait: true});
+		assertEquals(deserializeJSON(ajaxParams.data), {x: 3, y: 2});
+		assertEquals(model.get('x'), 1);
+		assertEquals(changed, 0);
+		lastRequest.options.success({});
+		assertEquals(model.get('x'), 3);
+		assertEquals(changed, 1);
+	}
+	
 	//   test("a failed `save` with `wait` doesn't leave attributes behind", 1, function() {
 	//	 var model = new Backbone.Model;
 	//	 model.save({x: 1}, {wait: true});
@@ -847,11 +844,14 @@ component extends="mxunit.framework.TestCase" {
 		variables.collection = klass();
 		collection.add(doc);
 
+		originalSync = Backbone.sync;
 		variables.Backbone.sync = function(method, model, options) {
 			lastRequest = arguments;
+			originalSync(argumentCollection = arguments);
 			return arguments;
 		};
-		Backbone.ajax = function(params) { ajaxParams = params; return arguments; };
+		variables.ajaxParams = {};
+		variables.Backbone.ajax = function() { ajaxParams = arguments; return arguments; };
 
 	}
 
