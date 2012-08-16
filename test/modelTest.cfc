@@ -804,15 +804,17 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(successRan);
 	}
 	
-	//   test("#1412 - Trigger 'sync' event.", 3, function() {
-	//	 var model = new Backbone.Model({id: 1});
-	//	 model.sync = function(method, model, options) { options.success(); };
-	//	 model.on('sync', function() { ok(true); });
-	//	 model.fetch();
-	//	 model.save();
-	//	 model.destroy();
-	//   });
-
+	public void function triggerSyncEvent() {
+		var syncTimes = 0;
+		var model = Backbone.Model.new({id: 1});
+		model.sync = function(method, model, options) { options.success(); };
+		model.on('sync', function() { syncTimes++; });
+		model.fetch();
+		model.save();
+		model.destroy();
+		assertEquals(syncTimes, 3);
+	}
+	
 	//   test("#1365 - Destroy: New models execute success callback.", 2, function() {
 	//	 new Backbone.Model()
 	//	 .on('sync', function() { ok(false); })

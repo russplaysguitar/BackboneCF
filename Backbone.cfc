@@ -474,13 +474,15 @@ component {
 			if (!_.has(options, 'success'))
 				options.success = function () {};
 			var success = options.success;
-			options.success = function(resp, status, xhr) {
+			options.success = function(resp = '', status, xhr = '') {
 				var setResult = model.set(model.parse(resp, xhr), options);
 				if (isBoolean(setResult) && !setResult)
 					return false;
 				success(model, resp, options);
+				model.trigger('sync', model, resp, options);
 			};
-			var result = Backbone.Sync('read', model, options);
+			var result = this.Sync('read', model, options);
+			if (!isNull(result)) return result;
 		},
 		// Set a hash of model attributes, and sync the model to the server.
 		// If the server returns an attributes hash that differs, the model's
