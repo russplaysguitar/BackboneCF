@@ -312,46 +312,42 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(counter, 2);
 	}
 
-	// TODO
-	// public void function modelDestroyRemovesFromAllCollections() {
-	// 	var e = Backbone.Model.new({id: 5, title: 'Othello'});
-	// 	e.sync = function(method, model, options) { options.success({}); };
-	// 	var colE = Backbone.Collection.new([e]);
-	// 	var colF = Backbone.Collection.new([e]);
-	// 	e.destroy();
-	// 	assertTrue(colE.length() == 0);
-	// 	assertTrue(colF.length() == 0);
-	// 	assertTrue(!_.has(e, 'collection'));
-	// }
+	public void function modelDestroyRemovesFromAllCollections() {
+		var e = Backbone.Model.new({id: 5, title: 'Othello'});
+		e.sync = function(method, model, options) { options.success({}); };
+		var colE = Backbone.Collection.new([e]);
+		var colF = Backbone.Collection.new([e]);
+		e.destroy();
+		assertEquals(colE.length(), 0);
+		assertEquals(colF.length(), 0);
+		assertFalse(_.has(e, 'collection'));
+	}
 
-	// TODO
-	// test("Colllection: non-persisted model destroy removes from all collections", 3, function() {
- //	var e = new Backbone.Model({title: 'Othello'});
- //	e.sync = function(method, model, options) { throw "should not be called"; };
- //	var colE = new Backbone.Collection([e]);
- //	var colF = new Backbone.Collection([e]);
- //	e.destroy();
- //	assertTrue(colE.length() == 0);
- //	assertTrue(colF.length() == 0);
- //	equal(undefined, e.collection);
- //  });
+	public void function nonPersistedModelDestroyRemovesFromAllCollections() {
+		var e = Backbone.Model.new({title: 'Othello'});
+		e.sync = function(method, model, options) { throw "should not be called"; };
+		var colE = Backbone.Collection.new([e]);
+		var colF = Backbone.Collection.new([e]);
+		e.destroy();
+		assertEquals(colE.length(), 0);
+		assertEquals(colF.length(), 0);
+		assertFalse(_.has(e, 'collection'));
+	}
 
-	// TODO
- //  test("Collection: fetch", 4, function() {
- //	col.fetch();
- //	equal(lastRequest.method, 'read');
- //	equal(lastRequest.model, col);
- //	equal(lastRequest.options.parse, true);
+	public void function fetch() {
+		col.fetch();
+		assertEquals(lastRequest.method, 'read');
+		assertEquals(lastRequest.model, col);
+		assertEquals(lastRequest.options.parse, true);
 
- //	col.fetch({parse: false});
- //	equal(lastRequest.options.parse, false);
- //  });
+		col.fetch({parse: false});
+		assertEquals(lastRequest.options.parse, false);
+	}
 
 	public void function create() {
 		var model = col.create({label: 'f'}, {wait: true});
-		// TODO
-		// assertEquals(lastRequest.method, 'create');
-		// assertEquals(lastRequest.model, model);
+		assertEquals(lastRequest.method, 'create');
+		assertEquals(lastRequest.model, model);
 		assertEquals(model.get('label'), 'f');
 		assertEquals(model.collection().cid, col.cid);
 	}
@@ -583,52 +579,50 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(!colFalse.comparator);
 	}
 
-	// TODO
-	// public void function optionsIsPassedToSuccessCallbacks() {
-	// 	var m = Backbone.Model.new({x:1});
-	// 	var col = Backbone.Collection.new();
-	// 	var argumentsHadOptions = false;
-	// 	var opts = {
-	// 		success: function(collection, resp, options){
-	// 			argumentsHadOptions = _.has(arguments, 'options');
-	// 		}
-	// 	};
-	// 	col.sync = m.sync = function( method, collection, options ){
-	// 		options.success();
-	// 	};
-	// 	col.fetch(opts);
-	// 	col.create(m, opts);
-	// 	assertTrue(argumentsHadOptions);
-	// }
+	public void function optionsIsPassedToSuccessCallbacks() {
+		var m = Backbone.Model.new({x:1});
+		var col = Backbone.Collection.new();
+		var argumentsHadOptions = false;
+		var opts = {
+			success: function(collection, resp, options){
+				argumentsHadOptions = _.has(arguments, 'options');
+			}
+		};
+		var cb = function( method, collection, options ){
+			options.success();
+		};
+		col.sync = cb;
+		m.sync = cb;
+		col.fetch(opts);
+		col.create(m, opts);
+		assertTrue(argumentsHadOptions);
+	}
 
-	// TODO
-	// public void function triggerSyncEvent() {
-	// 	var collection = Backbone.Collection.new([], {
-	//	   model: Backbone.Model.extend({
-	//		 sync: function(method, model, options) {
-	//		   options.success();
-	//		 }
-	//	   })
-	//	 });
-	//	 collection.sync = function(method, model, options) { options.success(); };
-	//	 var syncWasCalled = false;
-	//	 collection.on('sync', function() { syncWasCalled = true; });
-	//	 collection.fetch();
-	//	 collection.create({id: 1});
-	//	 assertTrue(syncWasCalled);
-	// }
+	public void function triggerSyncEvent() {
+		var collection = Backbone.Collection.new([], {
+		   model: Backbone.Model.extend({
+			 sync: function(method, model, options) {
+			   options.success();
+			 }
+		   })
+		 });
+		 collection.sync = function(method, model, options) { options.success(); };
+		 var syncWasCalled = false;
+		 collection.on('sync', function() { syncWasCalled = true; });
+		 collection.fetch();
+		 collection.create({id: 1});
+		 assertTrue(syncWasCalled);
+	}
 
-	// TODO
-	// public void function createWithWaitAddsModel() {
-	// 	var collection = Backbone.Collection.new();
-	// 	var model = Backbone.Model.new();
-	// 	model.sync = function(method, model, options){ options.success(); };
-	// 	var addWascalled = false;
-	// 	collection.on('add', function(){ addWascalled = true; });
-	// 	collection.create(model, {wait: true});
-	// 	assertTrue(addWascalled);
-	// }
-
+	public void function createWithWaitAddsModel() {
+		var collection = Backbone.Collection.new();
+		var model = Backbone.Model.new();
+		model.sync = function(method, model, options){ options.success(); };
+		var addWascalled = false;
+		collection.on('add', function(){ addWascalled = true; });
+		collection.create(model, {wait: true});
+		assertTrue(addWascalled);
+	}
 
 	public void function addSortsCollectionAfterMerge() {
 		var collection = Backbone.Collection.new([
@@ -639,17 +633,7 @@ component extends="mxunit.framework.TestCase" {
 		collection.add({id: 1, x: 3}, {merge: true});
 		assertEquals(collection.pluck('id'), [2, 1]);
 	}
-
-
-
-
-
-
-
-
-
-
-
+	
 
 	public void function setUp() {
 		variables.Backbone  = new backbone.Backbone();

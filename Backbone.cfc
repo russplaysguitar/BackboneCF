@@ -824,21 +824,31 @@ component {
 				return result;
 			});
 		},
+		// Fetch the default set of models for this collection, resetting the
+		// collection when they arrive. If `add: true` is passed, appends the
+		// models to the collection instead of resetting.
 		fetch: function (struct options = {}) {
 			if (!_.has(options, 'parse'))
 				options.parse = true;
 			var collection = this;
+			var nullFunc = function () {};
 			if (!_.has(options, 'success'))
-				options.success = function () {};
+				options.success = nullFunc;
 			var success = options.success;
 			options.success = function(resp, status, xhr) {
 				var func = collection[_.has(options, 'add') ? 'add' : 'reset'];
 				func(collection.parse(resp, xhr), options);
-				success(collection, resp);
+				success(collection, resp, options);
+				collection.trigger('sync', collection, resp, options);
 			};
+			options.error = _.has(options, 'error') ? options.error : nullFunc;
+			options.error = Backbone.wrapError(options.error, collection, options);
 			var result = Backbone.Sync('read', collection, options);
 		},
-		reset: function (array models = [], struct options = {}) {
+		// When you have more items than you want to add or remove individually,
+		// you can reset the entire set with a new list of models, without firing
+		// any `add` or `remove` events. Fires `reset` when finished.
+		reset: function (models = [], struct options = {}) {
 			for (var i = 1; i <= ArrayLen(this.models); i++) {
 				this._removeReference(this.models[i]);
 			}
@@ -892,6 +902,9 @@ component {
 			}
 			this.trigger(argumentCollection = {eventName: eventName, model:model, val: collection, changedAttributes: options});
 		},
+		// Create a new instance of a model in this collection. Add the model to the
+		// collection immediately, unless `wait: true` is passed, in which case we
+		// wait for the server to agree.
 		create: function (struct attributes = {}, struct options = {}) {
 			var coll = this;
 			var model = this._prepareModel(attributes, options);
@@ -905,6 +918,8 @@ component {
 			model.save(options = options);
 			return model;
 		},
+		// **parse** converts a response into the hash of attributes to be `set` on
+		// the model. The default implementation is just to pass the response along.
 		parse: function(resp, xhr) {
 			return resp;
 		}
