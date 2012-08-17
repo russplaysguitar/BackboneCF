@@ -935,6 +935,8 @@ component {
 			return function (struct options = {}) {
 				var View = duplicate(Backbone.View);
 
+				_.extend(options, obj);
+
 				_.extend(View, obj);
 
 				_.extend(View, duplicate(Backbone.Events));
@@ -943,7 +945,7 @@ component {
 				var specialOptions = ['model','collection','el','id','className','tagName','attributes'];
 				_.each(specialOptions, function (option) {
 					if (_.has(options, option)) {
-						View[option] = options[option];
+						View[option] = _.result(options, option);
 						// structDelete(options, option);
 					}
 				});
@@ -958,7 +960,7 @@ component {
 
 				View._ensureElement();
 
-				View.cid = _.uniqueId('c');
+				View.cid = _.uniqueId('view');
 
 				// TODO: write Underscore.cfc proxies
 
