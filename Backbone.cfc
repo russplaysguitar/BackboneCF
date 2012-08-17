@@ -926,6 +926,11 @@ component {
 	};
 
 	Backbone.View = {
+		new: function (struct options = {}) {
+			// convenience method. equivalent to: new Backbone.View(); in BackboneJS
+			var BackboneView = Backbone.View.extend();
+			return BackboneView(options);
+		},
 		extend: function (struct obj = {}) {
 			return function (struct options = {}) {
 				var View = duplicate(Backbone.View);
@@ -939,7 +944,7 @@ component {
 				_.each(specialOptions, function (option) {
 					if (_.has(options, option)) {
 						View[option] = options[option];
-						structDelete(options, option);
+						// structDelete(options, option);
 					}
 				});
 
@@ -977,7 +982,7 @@ component {
 		},
 		_ensureElement: function() {
 			if (!_.has(this, 'el')) {
-				var attrs = duplicate(this.attributes);
+				var attrs = _.has(this, 'attributes') ? this.attributes : {};
 				if (_.has(this, 'id'))
 					attrs.id = this.id;
 				if (_.has(this, 'className'))
