@@ -814,20 +814,25 @@ component extends="mxunit.framework.TestCase" {
 		model.destroy();
 		assertEquals(syncTimes, 3);
 	}
-	
-	//   test("#1365 - Destroy: New models execute success callback.", 2, function() {
-	//	 new Backbone.Model()
-	//	 .on('sync', function() { ok(false); })
-	//	 .on('destroy', function(){ ok(true); })
-	//	 .destroy({ success: function(){ ok(true); }});
-	//   });
-	 // test("#1433 - Save: An invalid model cannot be persisted.", 1, function() {
-	 //	var model = new Backbone.Model;
-	 //	model.validate = function(){ return 'invalid'; };
-	 //	model.sync = function(){ ok(false); };
-	 //	strictEqual(model.save(), false);
-	 //  });
 
+	public void function destroyNewModelsExecuteSuccessCallback() {
+		var m = Backbone.Model.new();
+		var destroyRan = false;
+		var successRan = false;
+		m.on('sync', function() { assertTrue(false); });
+		m.on('destroy', function(){ destroyRan = true; });
+		m.destroy({ success: function(){ successRan = true; }});
+		assertTrue(destroyRan);
+		assertTrue(successRan);
+	}
+	
+	public void function saveAnInvalidModelCannotBePersisted() {
+		var model = Backbone.Model.new();
+		model.validate = function(){ return 'invalid'; };
+		model.sync = function(){ assertTrue(false); };
+		assertEquals(model.save(), false);		
+	}
+	
 
 
 
