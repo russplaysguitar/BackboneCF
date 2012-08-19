@@ -415,7 +415,10 @@ component {
 			if (!options.wait) destroy();
 			if (!isNull(xhr)) return xhr;
 		},
-		_validate: function (struct attributes, struct options = { silent:false }) {
+	    // Run validation against the next complete set of model attributes,
+		// returning `true` if all is well. If a specific `error` callback has
+		// been passed, call that instead of firing the general `"error"` event.
+		_validate: function (required struct attributes, struct options = { silent:false }) {
 			var silent = _.has(options, 'silent') && options.silent;
 			if (silent || !_.has(this, 'validate'))
 				return true;
@@ -431,16 +434,19 @@ component {
 			}
 			return false;
 		},
+		// Check if the model is currently in a valid state. It's only possible to get into an *invalid* state if you're using silent changes.
 		isValid: function () {
 			if (!_.has(this, 'validate')) return true;
 			return isNull(this.validate(argumentCollection = {attrs: this.attributes, this: this}));
 		},
-		previous: function(required attr) {
+	    // Get the previous value of an attribute, recorded at the time the last `"change"` event was fired.
+		previous: function(required string attr) {
 			if (!_.has(this._previousAttributes, attr))
 				return;
 			else
 				return this._previousAttributes[attr];
 		},
+	    // Get all of the attributes of the model at the time of the previous `"change"` event.
 		previousAttributes: function() {
 			return _.clone(this._previousAttributes);
 		},
@@ -515,9 +521,13 @@ component {
 		sync: function() {
 			return Backbone.sync(argumentCollection = arguments);
 		},
+	    // Create a new model with identical attributes to this one.
 		clone: function () {
 			return this.new(this.attributes);
 		},
+		// Fetch the model from the server. If the server's representation of the
+		// model differs from its current attributes, they will be overriden,
+		// triggering a `"change"` event.
 		fetch: function (struct options = {}) {
 			if (!_.has(options, 'parse'))
 				options.parse = true;
@@ -625,25 +635,30 @@ component {
 			return isNull(this.id) || this.id == '';
 		}
 	};
-
+	// Backbone.Collection
+	// Provides a standard collection class for our sets of models, ordered
+	// or unordered. If a `comparator` is specified, the Collection will maintain
+	// its models in sort order, as they're added and removed.
 	Backbone.Collection = {
-		initialize: function () {},
-		Model: Backbone.Model.extend(),
+		initialize: function () {},// Initialize is an empty function by default. Override it with your own initialization logic.
+		Model: Backbone.Model.extend(),// The default model for a collection is just a **Backbone.Model**. This should be overridden in most cases.
 		models: [],
 		length: function () {
 			return arrayLen(this.models);
 		},
+		// Returns a new Collection. Equivalent to: new Backbone.Collection(models, options) in BackboneJS
 		new: function (array models = [], options = {}) {
-			// convenience method, equivalent to: new Backbone.Collection(models, options) in BackboneJS
 			var NewCollection = Backbone.Collection.extend();
 			return NewCollection(models, options);
 		},
+		// Returns a function that creates new instances of this Collection.
 		extend: function (struct properties = {}) {
 			return function (models = [], options = {}) {
 				var Collection = duplicate(Backbone.Collection);
 
 				_.extend(Collection, duplicate(Backbone.Events));
 
+				// TODO: make these work better, possibly by using proxies
 				// methods we want to implement from Underscore
 				var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
 					'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
@@ -686,6 +701,7 @@ component {
 				return Collection;
 			};
 		},
+	    // The JSON representation of a Collection is an array of the models' attributes.
 		toJSON: function () {
 			var result = '[';
 			_.each(this.models, function(model, i) {
@@ -696,6 +712,8 @@ component {
 			result &= ']';
 			return result;
 		},
+		// Add a model, or list of models to the set. Pass **silent** to avoid
+		// firing the `add` event for every new model.
 		add: function (any models = [], struct options = {}) {
 			var dups = [];
 			var cids = {};
@@ -710,6 +728,7 @@ component {
 			if (!isArray(arguments.models)) {
 				arguments.models = _.toArray(models);
 			}
+			// Begin by turning bare objects into model references, and preventing invalid models or duplicate models from being added.
 			for (var i = 1; i <= arrayLen(models); i++) {
 				model = models[i];
 				var model = this._prepareModel(model, options);
@@ -774,6 +793,7 @@ component {
 			}
 			return this;
 		},
+	    // Remove a model, or a list of models from the set. Pass silent to avoid firing the `remove` event for every model removed.
 		remove: function(any models = [], struct options = {}) {
 			arguments.models = _.isArray(models) ? models : [models];
 			for (var i = 1; i <= ArrayLen(models); i++) {
@@ -796,7 +816,9 @@ component {
 			}
 			return this;
 		},
+	    // Get a model from the set by id.
 		get: function (required any id) {
+			// arguments.id can either be an id or a structure with an id (confusing, I know)
 			if (isStruct(arguments.id) && _.has(arguments.id, 'id')) {
 				return this._byId[arguments.id.id];
 			}
@@ -804,6 +826,7 @@ component {
 				return this._byId[arguments.id];
 			}
 		},
+		// Get a model from the set by client id.
 		getByCid: function (required any cid) {
 			// arguments.cid can either be a cid or a structure with a cid (confusing, I know)
 			if (isStruct(arguments.cid) && _.has(cid, 'cid') && _.has(this._byCid, arguments.cid.cid)) {
@@ -813,33 +836,40 @@ component {
 				return this._byCid[arguments.cid];
 			}
 		},
+	    // Get the model at the given index.
 		at: function (required numeric index) {
 			return this.models[index];
 		},
+	    // Add a model to the end of the collection.
 		push: function (required struct model, struct options = {}) {
 			this.add(arguments.model, options);
 			return arguments.model;
 		},
+	    // Remove a model from the end of the collection.
 		pop: function (struct options = {}) {
 			var result = _.last(this.models);
-			this.remove([result]);
+			this.remove([result], options);
 			return result;
 		},
+	    // Add a model to the beginning of the collection.
 		unshift: function (required struct model, struct options = {}) {
 			arguments.model = this._prepareModel(arguments.model, options);
 			this.add(arguments.model, _.extend({at: 1}, options));
 			return model;
 		},
+	    // Remove a model from the beginning of the collection.
 		shift: function (struct options = {}) {
 			var result = _.first(this.models);
-			this.remove([result]);
+			this.remove([result], options);
 			return result;
-			// TODO: options
 		},
 		// Slice out a sub-array of models from the collection.
 		slice: function(begin, end) {
 			return _.slice(this.models, begin, end);
 		},
+		// Force the collection to re-sort itself. You don't need to call this under
+		// normal circumstances, as the set will maintain sort order as each item
+		// is added.
 		sort: function (struct options = {}) {
 			if (!_.has(this, 'comparator'))
 				throw('Cannot sort a set without a comparator', 'Backbone');
