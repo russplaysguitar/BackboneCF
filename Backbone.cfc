@@ -1,15 +1,24 @@
 component {
 
 	public struct function init() {
+		// requires the Underscore.cfc library
 		variables._ = new github.UnderscoreCF.Underscore();
 
+		// handles basic http requests
 		variables.httpCFC = new Http();
 
 		return Backbone;
 	}
 
 	Backbone = {
+		// Turn on `emulateJSON` to support legacy servers that can't deal with direct
+		// `application/json` requests ... will encode the body as
+		// `application/x-www-form-urlencoded` instead and will send the model in a
+		// form param named `model`.
 		emulateJSON: false,
+		// Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
+		// will fake `"PUT"` and `"DELETE"` requests via the `_method` parameter and
+		// set a `X-Http-Method-Override` header.
 		emulateHTTP: false
 	};
 
@@ -26,6 +35,16 @@ component {
 		};
 	};
 
+	// Backbone.Events
+	// A module that can be mixed in to *any object or struct* in order to provide it with
+	// custom events. You may bind with `on` or remove with `off` callback functions
+	// to an event; `trigger`-ing an event fires all callbacks in succession.
+	//
+	//     var object = {};
+	//     _.extend(object, Backbone.Events);
+	//     object.on('expand', function(){ writeOutput('expanded'); });
+	//     object.trigger('expand');
+	//
 	Backbone.Events = {
 		// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
 		on: function (required string eventName, callback, context = {}) {
@@ -149,26 +168,41 @@ component {
 		}
 	};
 
+	// Map from CRUD to HTTP for our default `Backbone.sync` implementation.
 	variables.methodMap = {
 		'create': 'POST',
 		'update': 'PUT',
 		'delete': 'DELETE',
 		'read':   'GET'
 	};
-
+	// Override this function to change the manner in which Backbone persists
+	// models to the server. You will be passed the type of request, and the
+	// model in question. By default, makes a RESTful HTTP request
+	// to the model's `url()`. 
+	//
+	// Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
+	// as `POST`, with a `_method` parameter containing the true HTTP method,
+	// as well as all requests with the body as `application/x-www-form-urlencoded`
+	// instead of `application/json` with the model in a param named `model`.
+	// Useful when interfacing with server-side languages like **PHP** that make
+	// it difficult to read the body of `PUT` requests.
 	Backbone.Sync = function (required string method, struct model, struct options = {}) {
 		var type = methodMap[method];
+	    // Default JSON-request options.
 		var params = {type: type, dataType: 'json'};
 
+		// Ensure that we have a URL.
 		if (!_.has(options, 'url')) {
 			if (!_.has(model, 'url'))
 				throw('A "url" property or function must be specified', 'Backbone');
 			params.url = _.result(model, 'url');
 		}
+	    // Ensure that we have the appropriate request data.
 		if (!_.has(options, 'data') && _.has(arguments, 'model') && (method == 'create' || method == 'update')) {
 			params.contentType = 'application/json';
 			params.data = model.toJSON();
 		}
+	    // For older servers, emulate JSON by encoding the request into an HTML-form.
 		if (Backbone.emulateJSON) {
 			params.contentType = 'application/x-www-form-urlencoded';
 			if (_.has(params, 'data'))
@@ -176,6 +210,8 @@ component {
 			else
 				params.data = {};
 		}
+		// For older servers, emulate HTTP by mimicking the HTTP method with `_method`
+		// And an `X-HTTP-Method-Override` header.
 		if (Backbone.emulateHTTP) {
 			if (type == 'PUT' || type == 'DELETE') {
 				if (Backbone.emulateJSON)
@@ -188,6 +224,11 @@ component {
 		}
 
 		if (!_.has(params, 'data')) params.data = '';
+
+		// Don't process data on a non-GET request.
+		if (params.type != 'GET' && !Backbone.emulateJSON) {
+			params.processData = false;
+		}
 
 		// Make the request, allowing the user to override any http request options.
 		return Backbone.ajax(argumentCollection = _.extend(params, options));

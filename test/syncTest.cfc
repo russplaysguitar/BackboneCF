@@ -134,6 +134,16 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(settingsOuter.url, '/test');
 	}
 
+	public void function syncProcessDataFalse() {
+		var model = Backbone.Model.new();
+		model.url = '/test';
+		Backbone.sync('create', model);	
+		assertFalse(lastRequest.processData);
+		Backbone.sync('read', model);
+		assertTrue(isNull(lastRequest.processData));
+	}
+	
+	
 
 
 
