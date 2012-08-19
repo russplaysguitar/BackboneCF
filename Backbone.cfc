@@ -23,14 +23,14 @@ component {
 	};
 
 	// Wrap an optional error callback with a fallback error event.
-	Backbone.wrapError = function(onError, originalModel, options) {
+	Backbone.wrapError = function(onError, required struct originalModel, struct options = {}) {
 		var args = arguments;
-		return function(model, resp) {
-			resp = _.isEqual(model, originalModel) ? resp : model;
-			if (_.has(args, 'onError') && onError != '') {
-				onError(originalModel, resp, options);
+		return function(required struct model, resp) {
+			arguments.resp = _.isEqual(arguments.model, originalModel) && _.has(arguments, 'resp') ? arguments.resp : arguments.model;
+			if (_.has(args, 'onError') && _.isFunction(args.onError)) {
+				onError(originalModel, arguments.resp, args.options);
 			} else {
-				originalModel.trigger('error', originalModel, resp, options);
+				args.originalModel.trigger('error', args.originalModel, arguments.resp, args.options);
 			}
 		};
 	};
@@ -235,25 +235,27 @@ component {
 		return Backbone.ajax(argumentCollection = _.extend(params, options));
 	};
 
+	// default implementation uses HTTP.cfc to make RESTful requests
 	Backbone.ajax = function () {
 		return httpCFC.request(argumentCollection = arguments);
 	};
 
 	Backbone.Model = {
-		initialize: function () {},
+		initialize: function () {},// Initialize is an empty function by default. Override it with your own initialization logic.
 		attributes: {},
 		defaults: {},
 		_escapedAttributes: {},
-		_silent: {},
-		_pending: {},
+		_silent: {},// A hash of attributes that have silently changed since the last time `change` was called.  Will become pending attributes on the next call.
+		_pending: {},// A hash of attributes that have changed since the last `'change'` event began.
 		_changing: false,
-		changed: {},
-		idAttribute: 'id',
+		changed: {},// A hash of attributes whose current and previous value differ.
+		idAttribute: 'id',// The default name for the JSON `id` attribute is `"id"`. MongoDB and CouchDB users may want to set this to `"_id"`.
+		// Create a new model, with defined attributes. A client id (`cid`) is automatically generated and assigned for you. Equivalent to: new Backbone.Model(); in BackboneJS
 		new: function (struct attributes = {}, struct options = {}) {
-			// convenience method. equivalent to: new Backbone.Model(); in BackboneJS
 			var BackboneModel = Backbone.Model.extend();
 			return BackboneModel(attributes, options);
 		},
+		// Returns a function that generates a new instance of the Model. 
 		extend: function (struct properties = {}) {
 			return function (struct attributes = {}, struct options = {}) {
 				var Model = duplicate(Backbone.Model);
@@ -290,14 +292,18 @@ component {
 				return Model;
 			};
 		},
-		get: function (required string key) {
-			if (this.has(key)) return this.attributes[key];
+	    // Get the value of an attribute, if it exists.
+		get: function (required string attr) {
+			if (this.has(attr)) return this.attributes[attr];
 		},
-		escape: function (attr) {
+	    // Get the HTML-escaped value of an attribute.
+		escape: function (required string attr) {
+			if (!this.has(attr)) return '';
 			var result = _.escape(this.get(attr));
 			this._escapedAttributes[attr] = result;
 			return result;
 		},
+	    // Set a hash of model attributes on the object, firing `"change"` unless you choose to silence it.
 		set: function (required any key, value = '', struct options = {}) {
 			// Handle both "key", value and {key: value} -style arguments.
 			if (isStruct(key)) {
@@ -326,6 +332,7 @@ component {
 			var escaped = this._escapedAttributes;
 			var prev = _.has(this, '_previousAttributes') ? this._previousAttributes : {};
 
+			// For each `set` attribute...
 			for (attr in attrs) {
 				var val = attrs[attr];
 
@@ -362,9 +369,11 @@ component {
 
 			return this;
 		},
+	    // Returns `true` if the attribute structKeyExists.
 		has: function (required string attribute) {
 			return _.has(this.attributes, attribute);
 		},
+	    // Remove an attribute from the model, firing `"change"` unless you choose to silence it. `unset` is a noop if the attribute doesn't exist.
 		unset: function (required string key, struct options = {}) {
 			var opts = _.extend({}, arguments.options, { unset: true });
 			return this.set(key = arguments.key, options = opts);
@@ -377,8 +386,7 @@ component {
 		// Destroy this model on the server if it was already persisted.
 		// Optimistically removes the model from its collection, if it has one.
 		// If `wait: true` is passed, waits for the server to respond before removal.
-		destroy: function (options) {
-			arguments.options = _.has(arguments, 'options') ? _.clone(arguments.options) : {};
+		destroy: function (struct options = {}) {
 			var model = this;
 			var nullFunction = function () {};
 			var success = _.has(options, 'success') ? options.success : nullFunction;
@@ -389,7 +397,7 @@ component {
 			};
 
 			options.wait = _.has(options, 'wait') ? options.wait : false;
-			options.error = _.has(options, 'error') ? options.error : '';
+			options.error = _.has(options, 'error') ? options.error : false;
 
 			options.success = function(resp = '') {
 				if (options.wait || model.isNew()) destroy();
@@ -499,6 +507,7 @@ component {
 			}
 			return changed;
 		},
+	    // Return a JSON-serialized string of the model's `attributes` object.
 		toJSON: function () {
 			return serializeJSON(this.attributes);
 		},
@@ -578,9 +587,8 @@ component {
 			};
 
 			// Finish configuring and sending the http request.
-			var defaultOnError = function () {};
-			var err = _.has(options, 'error') ? options.error : defaultOnError;
-			options.error = Backbone.wrapError(err, model, options);
+			options.error = _.has(options, 'error') ? options.error : false;
+			options.error = Backbone.wrapError(options.error, model, options);
 			var method = this.isNew() ? 'create' : 'update';
 			var xhr = this.sync(method, model, options);
 
@@ -874,16 +882,15 @@ component {
 				options.parse = true;
 			var collection = this;
 			var nullFunc = function () {};
-			if (!_.has(options, 'success'))
-				options.success = nullFunc;
+			options.success = _.has(options, 'success') ? options.success: nullFunc;
 			var success = options.success;
 			options.success = function(resp, status, xhr) {
-				var func = collection[_.has(options, 'add') ? 'add' : 'reset'];
-				func(collection.parse(resp, xhr), options);
+				var addOrReset = collection[_.has(options, 'add') ? 'add' : 'reset'];
+				addOrReset(collection.parse(resp, xhr), options);
 				success(collection, resp, options);
 				collection.trigger('sync', collection, resp, options);
 			};
-			options.error = _.has(options, 'error') ? options.error : nullFunc;
+			options.error = _.has(options, 'error') ? options.error : false;
 			options.error = Backbone.wrapError(options.error, collection, options);
 			var result = Backbone.Sync('read', collection, options);
 		},

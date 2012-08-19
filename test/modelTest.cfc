@@ -112,8 +112,8 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(doc.escape('audience'), 'Tim &gt; Joan');
 		doc.set({audience: 10101});
 		assertEquals(doc.escape('audience'), '10101');
-		// doc.unset('audience');// doesn't work because _.escape() requires input
-		// assertEquals(doc.escape('audience'), '');
+		doc.unset('audience');
+		assertEquals(doc.escape('audience'), '');
 	}
 
 	public void function has() {
