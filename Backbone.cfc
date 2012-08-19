@@ -864,7 +864,7 @@ component {
 			return result;
 		},
 		// Slice out a sub-array of models from the collection.
-		slice: function(begin, end) {
+		slice: function(required numeric begin, required numeric end) {
 			return _.slice(this.models, begin, end);
 		},
 		// Force the collection to re-sort itself. You don't need to call this under
@@ -889,11 +889,13 @@ component {
 
 			return this;
 		},
+		// Pluck an attribute from each model in the collection.
 		pluck: function (required string attribute) {
 			return _.map(this.models, function(model) {
 				return model.get(attribute);
 			});
 		},
+	    // Return models with matching attributes. Useful for simple cases of `filter`.
 		where: function (required struct attributes) {
 			return _.filter(this.models, function(model) {
 				var result = true;
@@ -937,11 +939,13 @@ component {
 				this.trigger('reset', this, options);
 			return this;
 		},
+	    // Reset all internal state. Called when the collection is reset.
 		_reset: function(struct options = {}) {
 			this.models = [];
 			this._byId  = {};
 			this._byCid = {};
 		},
+	    // Prepare a model or hash of attributes to be added to this collection.
 		_prepareModel: function(required struct model, struct options = {}) {
 			// TODO: improve model check to ensure correct type of model
 			if (!(_.has(model, 'cid'))) {
@@ -1004,12 +1008,14 @@ component {
 		}
 	};
 
+
 	Backbone.View = {
+		// Create a new Backbone.View. Equivalent to: new Backbone.View(); in BackboneJS
 		new: function (struct options = {}) {
-			// convenience method. equivalent to: new Backbone.View(); in BackboneJS
 			var BackboneView = Backbone.View.extend();
 			return BackboneView(options);
 		},
+		// Returns a function that creates new instances of this view
 		extend: function (struct obj = {}) {
 			return function (struct options = {}) {
 				var View = duplicate(Backbone.View);
@@ -1046,7 +1052,13 @@ component {
 				return View;
 			};
 		},
+	    // The default `tagName` of a View's element is `"div"`.
 		tagName: 'div',
+		// For small amounts of elements, where a full-blown template isn't
+		// needed, use **make** to manufacture elements, one at a time.
+		//
+		//     var el = this.make('li', {'class': 'row'}, this.model.escape('title'));
+		//
 		make: function(required string tagName, struct attributes = {}, string content = '') {
 			var htmlTag = "<#tagName#";
 			if (!_.isEmpty(attributes)) {
@@ -1057,10 +1069,13 @@ component {
 			htmlTag = htmlTag & ">#content#</#tagName#>";
 			return htmlTag;
 		},
+		// Change the view's element (`this.el` property), including event re-delegation.
 		setElement: function(element, delegate) {
 			this.el = element;
 			// TODO: something with delegate? or $el?
 		},
+		// Ensure that the View has an element to render into. Create
+		// an element from the `id`, `className` and `tagName` properties.
 		_ensureElement: function() {
 			if (!_.has(this, 'el')) {
 				var attrs = _.has(this, 'attributes') ? this.attributes : {};
