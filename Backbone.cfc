@@ -223,7 +223,8 @@ component {
 			}
 		}
 
-		if (!_.has(params, 'data')) params.data = '';
+		// 
+		if (!_.has(params, 'data')) params.data = {};
 
 		// Don't process data on a non-GET request.
 		if (params.type != 'GET' && !Backbone.emulateJSON) {

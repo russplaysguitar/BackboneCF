@@ -90,7 +90,7 @@ component extends="mxunit.framework.TestCase" {
 		library.first().destroy({wait: true});
 		assertEquals(urlDecode(lastRequest.url), '/library/2-the-tempest');
 		assertEquals(lastRequest.type, 'DELETE');
-		assertEquals(lastRequest.data, '');
+		assertEquals(lastRequest.data, {});
 	}
 
 	public void function destroyWithEmulateHTTP() {
