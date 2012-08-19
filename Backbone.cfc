@@ -223,7 +223,7 @@ component {
 			}
 		}
 
-		// 
+		// ensure data parameter is at least an empty struct
 		if (!_.has(params, 'data')) params.data = {};
 
 		// Don't process data on a non-GET request.
