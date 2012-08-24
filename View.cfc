@@ -1,7 +1,7 @@
-component extends="Core,Events" {
+component extends="Events" {
 	// Create a new Backbone.View
-	this.init = function (struct options = {}) {
-		var BackboneView = Backbone.View.extend();
+	this.new = function (struct options = {}) {
+		var BackboneView = new View().extend();
 		return BackboneView(options);
 	};
 	// Returns a function that creates new instances of this view

@@ -25,7 +25,7 @@ component extends="Core" {
 		}
 
 		return this;
-	},
+	};
 	// Remove one or many callbacks. If context is null, removes all callbacks with that function. If callback is null, removes all callbacks for the event. If events is null, removes all bound callbacks for all events.
 	this.off = function (string eventName, callback, struct context) {
 
@@ -88,7 +88,7 @@ component extends="Core" {
 		}
 
 		return this;
-	},
+	};
 	// Trigger one or many events, firing all bound callbacks. Callbacks are passed the same arguments as trigger is, apart from the event name (unless you're listening on "all", which will cause your callback to receive the true name of the event as the first argument).
 	this.trigger = function (required string eventName, struct model = this, val = '', struct changedAttributes = {}) {
 
@@ -118,5 +118,5 @@ component extends="Core" {
 		}
 
 		return this;
-	}	
+	};
 }

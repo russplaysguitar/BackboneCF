@@ -1,16 +1,16 @@
-component extends="Core,Events" {
+component extends="Events" {
     this.initialize = function () {};// Initialize is an empty function by default. Override it with your own initialization logic.
     this.attributes = {};
     this.defaults = {};
     variables._escapedAttributes = {};
     variables._silent = {};// A hash of attributes that have silently changed since the last time `change` was called.  Will become pending attributes on the next call.
     variables._pending = {};// A hash of attributes that have changed since the last `'change'` event began.
-    variables._changing = false,
+    variables._changing = false;
     this.changed = {};// A hash of attributes whose current and previous value differ.
-    this.idAttribute = 'id',// The default name for the JSON `id` attribute is `"id"`. MongoDB and CouchDB users may want to set this to `"_id"`.
+    this.idAttribute = 'id';// The default name for the JSON `id` attribute is `"id"`. MongoDB and CouchDB users may want to set this to `"_id"`.
 	// Create a new model, with defined attributes. A client id (`cid`) is automatically generated and assigned for you. Equivalent to: new Backbone.Model(); in BackboneJS
     this.new = function (struct attributes = {}, struct options = {}) {
-		var BackboneModel = Backbone.Model.extend();
+		var BackboneModel = new Model().extend();
 		return BackboneModel(attributes, options);
 	};
 	// Returns a function that generates a new instance of the Model. 

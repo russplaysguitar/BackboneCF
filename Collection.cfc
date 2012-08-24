@@ -2,9 +2,9 @@
 // Provides a standard collection class for our sets of models, ordered
 // or unordered. If a `comparator` is specified, the Collection will maintain
 // its models in sort order, as they're added and removed.
-component extends="Core,Events" {
+component extends="Events" {
     this.initialize = function () {};// Initialize is an empty function by default. Override it with your own initialization logic.
-	this.Model = Backbone.Model.extend();// The default model for a collection is just a **Backbone.Model**. This should be overridden in most cases.
+	this.Model = new Model().extend();// The default model for a collection is just a **Backbone.Model**. This should be overridden in most cases.
 	this.models = [];
     this.length = function () {
 		return arrayLen(this.models);
