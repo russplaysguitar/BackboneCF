@@ -1,5 +1,5 @@
 component {
-	this.mappings["/backbone"] = getParentDirectory(getCurrentTemplatePath());
+	this.mappings["/Backbone"] = getParentDirectory(getCurrentTemplatePath());
 
 	private string function getParentDirectory(required path) {
 		return GetDirectoryFromPath(

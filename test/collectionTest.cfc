@@ -28,8 +28,8 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function getWithNonDefaultIds() {
-		var col = Backbone.Collection.new();
-		var MongoModel = Backbone.Model.extend({
+		var col = new Backbone.Collection().new();
+		var MongoModel = new Backbone.Model().extend({
 		  idAttribute: '_id'
 		});
 		var model = MongoModel({_id: 100});
@@ -40,7 +40,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function updateIndexWhenIdChanges() {
-		var col = Backbone.Collection.new();
+		var col = new Backbone.Collection().new();
 		col.add([
 		  {id : 0, name : 'one'},
 		  {id : 1, name : 'two'}
@@ -60,7 +60,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function add() {
-		var e = Backbone.Model.new({id: 10, label : 'e'});
+		var e = new Backbone.Model().new({id: 10, label : 'e'});
 		otherCol.add(e);
 		otherCol.on('add', function() {
 			secondAdded = true;
@@ -77,11 +77,11 @@ component extends="mxunit.framework.TestCase" {
 		assertTrue(_.isEqual(col.last(), e));
 		assertEquals(otherCol.length(), 1);
 
-		var Model = Backbone.Model.extend();
+		var Model = new Backbone.Model().extend();
 		var f = Model({id: 20, label : 'f'});
 		var g = Model({id: 21, label : 'g'});
 		var h = Model({id: 22, label : 'h'});
-		var NewAtCol = Backbone.Collection.extend();
+		var NewAtCol = new Backbone.Collection().extend();
 		var atCol = NewAtCol([f, g, h]);
 		assertEquals(atCol.length(), 3);
 		atCol.add(e, {at: 1});
@@ -91,7 +91,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function addMultipleModels() {
-		var col = Backbone.Collection.new([{at: 1}, {at: 2}, {at: 9}]);
+		var col = new Backbone.Collection().new([{at: 1}, {at: 2}, {at: 9}]);
 		col.add([{at: 3}, {at: 4}, {at: 5}, {at: 6}, {at: 7}, {at: 8}, {at: 9}], {at: 3});
 		for (i = 1; i <= 6; i++) {
 			assertEquals(col.at(i).get('at'), i);
@@ -99,32 +99,32 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function add_AtShouldHavePreferenceOverComparator() {
-		var Col = Backbone.Collection.extend({
+		var Col = new Backbone.Collection().extend({
 			comparator: function(a,b) {
 				return a.id > b.id ? -1 : 1;
 			}
 		});
 
 		var col = Col([{id: 2}, {id: 3}]);
-		col.add(Backbone.Model.new({id: 1}), {at: 2});
+		col.add(new Backbone.Model().new({id: 1}), {at: 2});
 
 		assertEquals(col.pluck('id'), [3, 1, 2]);
 	}
 
 	public void function cantAddModelToCollectionTwice() {
-		var col = Backbone.Collection.new([{id: 1}, {id: 2}, {id: 1}, {id: 2}, {id: 3}]);
+		var col = new Backbone.Collection().new([{id: 1}, {id: 2}, {id: 1}, {id: 2}, {id: 3}]);
 		assertEquals(col.pluck('id'), [1, 2, 3]);
 	}
 
 	public void function cantAddDifferentModelWithSameIdToCollectionTwice() {
-		var col = Backbone.Collection.new();
+		var col = new Backbone.Collection().new();
 		col.unshift({id: 101});
 		col.add({id: 101});
 		assertEquals(col.length(), 1);
 	}
 
 	public void function mergeInDuplicateModelsWithMergeTrue() {
-		var col = Backbone.Collection.new();
+		var col = new Backbone.Collection().new();
 		col.add([{id: 1, name: 'Moe'}, {id: 2, name: 'Curly'}, {id: 3, name: 'Larry'}]);
 		col.add({id: 1, name: 'Moses'});
 		assertEquals(col.first().get('name'), 'Moe');
@@ -136,7 +136,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function addModelToMultipleCollections() {
 		var counter = 0;
-		var e = Backbone.Model.new({id: 10, label : 'e'});
+		var e = new Backbone.Model().new({id: 10, label : 'e'});
 		e.on('add', function(model, collection) {
 			counter++;
 			assertEquals(e.cid, model.cid);
@@ -146,14 +146,14 @@ component extends="mxunit.framework.TestCase" {
 				assertEquals(collection.cid, colE.cid);
 			}
 		});
-		var colE = Backbone.Collection.new([]);
+		var colE = new Backbone.Collection().new([]);
 		colE.on('add', function(model, collection) {
 			assertEquals(e.cid, model.cid);
 			assertEquals(e.toJSON(), model.toJSON());
 			assertEquals(colE.cid, collection.cid);
 			assertEquals(colE.toJSON(), collection.toJSON());
 		});
-		var colF = Backbone.Collection.new([]);
+		var colF = new Backbone.Collection().new([]);
 		colF.on('add', function(model, collection) {
 			assertEquals(e, model);
 			assertTrue(_.isEqual(colF.toJSON(), collection.toJSON()));
@@ -165,27 +165,27 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function addModelWithParse() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			parse: function(obj) {
 				obj.value += 1;
 				return obj;
 			}
 		});
 
-		var Collection = Backbone.Collection.extend({model: Model});
+		var Collection = new Backbone.Collection().extend({model: Model});
 		var col = Collection();
 		col.add({value: 1}, {parse: true});
 		assertEquals(col.at(1).get('value'), 2);
 	}
 
 	public void function addModelToCollectionWithSortStyleComparatior() {
-		var col = Backbone.Collection.new();
+		var col = new Backbone.Collection().new();
 		col.comparator = function(a, b) {
 			return a.get('name') < b.get('name') ? -1 : 1;
 		};
-		var tom = Backbone.Model.new({name: 'Tom'});
-		var rob = Backbone.Model.new({name: 'Rob'});
-		var tim = Backbone.Model.new({name: 'Tim'});
+		var tom = new Backbone.Model().new({name: 'Tom'});
+		var rob = new Backbone.Model().new({name: 'Rob'});
+		var tim = new Backbone.Model().new({name: 'Tim'});
 		col.add(tom);
 		col.add(rob);
 		col.add(tim);
@@ -195,7 +195,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function comparatorThatDependsOnThis() {
-		var Collection = Backbone.Collection.extend({
+		var Collection = new Backbone.Collection().extend({
 			negative: function(num) {
 				return -num;
 			},
@@ -226,13 +226,13 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function shiftAndPop() {
-		var col = Backbone.Collection.new([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
+		var col = new Backbone.Collection().new([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
 		assertEquals(col.shift().get('a'), 'a');
 		assertEquals(col.pop().get('c'), 'c');
 	}
 
 	public void function slice() {
-		var col = Backbone.Collection.new([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
+		var col = new Backbone.Collection().new([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
 		var array = col.slice(2, 4);
 		assertEquals(arrayLen(array), 2);
 		assertEquals(array[1].get('b'), 'b');
@@ -240,8 +240,8 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function eventsAreUnboundOnRemove() {
 		var counter = 0;
-		var dj = Backbone.Model.new();
-		var emcees = Backbone.Collection.new([dj]);
+		var dj = new Backbone.Model().new();
+		var emcees = new Backbone.Collection().new([dj]);
 		emcees.on('change', function(){ counter++; });
 		dj.set({name : 'Kool'});
 		assertEquals(counter, 1);
@@ -257,13 +257,13 @@ component extends="mxunit.framework.TestCase" {
 			title : 'Othello'
 		};
 		var passed = false;
-		var e = Backbone.Model.new(modelData);
-		var f = Backbone.Model.new(modelData);
+		var e = new Backbone.Model().new(modelData);
+		var f = new Backbone.Model().new(modelData);
 		f.on('remove', function() {
 			passed = true;
 		});
-		var colE = Backbone.Collection.new([e]);
-		var colF = Backbone.Collection.new([f]);
+		var colE = new Backbone.Collection().new([e]);
+		var colF = new Backbone.Collection().new([f]);
 		assertTrue(!_.isEqual(e, f));
 		assertTrue(colE.length() == 1);
 		assertTrue(colF.length() == 1);
@@ -277,7 +277,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function removeSameModelInMultipleCollections() {
 		var counter = 0;
-		var e = Backbone.Model.new({id: 5, title: 'Othello'});
+		var e = new Backbone.Model().new({id: 5, title: 'Othello'});
 		e.on('remove', function(model, collection) {
 			counter++;
 			assertEquals(e.toJSON(), model.toJSON());
@@ -288,13 +288,13 @@ component extends="mxunit.framework.TestCase" {
 				assertEquals(collection.cid, colF.cid);
 			}
 		});
-		var colE = Backbone.Collection.new([e]);
+		var colE = new Backbone.Collection().new([e]);
 		colE.on('remove', function(model, collection) {
 			assertEquals(e.toJSON(), model.toJSON());
 			assertEquals(e.cid, model.cid);
 			assertEquals(colE.cid, collection.cid);
 		});
-		var colF = Backbone.Collection.new([e]);
+		var colF = new Backbone.Collection().new([e]);
 		colF.on('remove', function(model, collection) {
 			assertEquals(e.toJSON(), model.toJSON());
 			assertEquals(e.cid, model.cid);
@@ -313,10 +313,10 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function modelDestroyRemovesFromAllCollections() {
-		var e = Backbone.Model.new({id: 5, title: 'Othello'});
+		var e = new Backbone.Model().new({id: 5, title: 'Othello'});
 		e.sync = function(method, model, options) { options.success({}); };
-		var colE = Backbone.Collection.new([e]);
-		var colF = Backbone.Collection.new([e]);
+		var colE = new Backbone.Collection().new([e]);
+		var colF = new Backbone.Collection().new([e]);
 		e.destroy();
 		assertEquals(colE.length(), 0);
 		assertEquals(colF.length(), 0);
@@ -324,10 +324,10 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function nonPersistedModelDestroyRemovesFromAllCollections() {
-		var e = Backbone.Model.new({title: 'Othello'});
+		var e = new Backbone.Model().new({title: 'Othello'});
 		e.sync = function(method, model, options) { throw "should not be called"; };
-		var colE = Backbone.Collection.new([e]);
-		var colF = Backbone.Collection.new([e]);
+		var colE = new Backbone.Collection().new([e]);
+		var colF = new Backbone.Collection().new([e]);
 		e.destroy();
 		assertEquals(colE.length(), 0);
 		assertEquals(colF.length(), 0);
@@ -353,12 +353,12 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function aFailingCreateRunsTheErrorCallback() {
-		var ValidatingModel = Backbone.Model.extend({
+		var ValidatingModel = new Backbone.Model().extend({
 			validate: function(attrs) {
 				return "fail";
 			}
 		});
-		var ValidatingCollection = Backbone.Collection.extend({
+		var ValidatingCollection = new Backbone.Collection().extend({
 			model: ValidatingModel
 		});
 		var flag = false;
@@ -369,7 +369,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function intialize() {
-		var Collection = Backbone.Collection.extend({
+		var Collection = new Backbone.Collection().extend({
 			initialize: function() {
 				this.one = 1;
 			}
@@ -387,7 +387,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function where() {
-		var coll = Backbone.Collection.new([
+		var coll = new Backbone.Collection().new([
 		  {a: 1},
 		  {a: 1},
 		  {a: 1, b: 2},
@@ -443,12 +443,12 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function resetPassesCallerOptions() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			initialize: function(attrs, options = {model_parameter: false}) {
 				this.model_parameter = options.model_parameter;
 			}
 		});
-		var Collection = Backbone.Collection.extend({ model: Model });
+		var Collection = new Backbone.Collection().extend({ model: Model });
 		var col = Collection();
 		col.reset([{ astring: "green", anumber: 1 }, { astring: "blue", anumber: 2 }],
 			{ model_parameter: 'model parameter' });
@@ -468,15 +468,15 @@ component extends="mxunit.framework.TestCase" {
 	public void function addDoesNotAlterArguments() {
 		var attrs = {};
 		var models = [attrs];
-		Backbone.Collection.new().add(models);
+		new Backbone.Collection().new().add(models);
 		assertEquals(arraylen(models), 1);
 		assertTrue(_.isEqual(attrs, models[1]));
 	}
 
 	public void function accessModelDotCollectionInABrandNewModel() {
 		var setWasCalled = false;
-		var col = Backbone.Collection.new();
-		var Model = Backbone.Model.extend({
+		var col = new Backbone.Collection().new();
+		var Model = new Backbone.Model().extend({
 			set: function(attrs) {
 				setWasCalled = true;
 				assertEquals(attrs.prop, 'value');
@@ -490,7 +490,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function removeItsOwnReferenceToTheModelsArray() {
-		var col = Backbone.Collection.new([
+		var col = new Backbone.Collection().new([
 			{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}
 		]);
 		assertEquals(col.length(), 6);
@@ -502,13 +502,13 @@ component extends="mxunit.framework.TestCase" {
 	* @mxunit:expectedException Backbone
 	*/
 	public void function addingModelsToACollectionWhichDoNotPassValidation() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			validate: function(attrs) {
 				if (attrs.id == 3) return "id can't be 3";
 			}
 		});
 
-		var Collection = Backbone.Collection.extend({
+		var Collection = new Backbone.Collection().extend({
 			model: Model
 		});
 
@@ -519,7 +519,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function indexWithComparator() {
 		var counter = 0;
-		var col = Backbone.Collection.new([{id: 2}, {id: 4}], {
+		var col = new Backbone.Collection().new([{id: 2}, {id: 4}], {
 			comparator: function(model){ return model.id; }
 		});
 		col.on('add', function(model, colleciton, options){
@@ -536,9 +536,9 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function throwingDuringAddLeavesConsistentState() {
-		var col = Backbone.Collection.new();
+		var col = new Backbone.Collection().new();
 		col.on('test', function() { assertTrue(false); });
-		col.model = Backbone.Model.extend({
+		col.model = new Backbone.Model().extend({
 			validate: function(attrs){ if (!attrs.valid) return 'invalid'; }
 		});
 		var model = col.model({id: 1, valid: true});
@@ -553,8 +553,8 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function multipleCopiesOfTheSameModel() {
-		var col = Backbone.Collection.new();
-		var model = Backbone.Model.new();
+		var col = new Backbone.Collection().new();
+		var model = new Backbone.Model().new();
 		col.add([model, model]);
 		assertEquals(col.length(), 1);
 		col.add([{id: 1}, {id: 1}]);
@@ -563,14 +563,14 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function passingOptionsDotModelSetsCollectionDotModel() {
-		var Model = Backbone.Model.extend({something:'unique'});
-		var c = Backbone.Collection.new([{id: 1}], {model: Model});
+		var Model = new Backbone.Model().extend({something:'unique'});
+		var c = new Backbone.Collection().new([{id: 1}], {model: Model});
 		assertTrue(_.isEqual(c.model().something, Model().something));
 		assertEquals(c.at(1).something, Model().something);
 	}
 
 	public void function falsyComparator() {
-		var Collection = Backbone.Collection.extend({
+		var Collection = new Backbone.Collection().extend({
 			comparator: function(model){ return model.id; }
 		});
 		var col = Collection();
@@ -580,8 +580,8 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function optionsIsPassedToSuccessCallbacks() {
-		var m = Backbone.Model.new({x:1});
-		var col = Backbone.Collection.new();
+		var m = new Backbone.Model().new({x:1});
+		var col = new Backbone.Collection().new();
 		var argumentsHadOptions = false;
 		var opts = {
 			success: function(collection, resp, options){
@@ -599,8 +599,8 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function triggerSyncEvent() {
-		var collection = Backbone.Collection.new([], {
-		   model: Backbone.Model.extend({
+		var collection = new Backbone.Collection().new([], {
+		   model: new Backbone.Model().extend({
 			 sync: function(method, model, options) {
 			   options.success();
 			 }
@@ -615,8 +615,8 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function createWithWaitAddsModel() {
-		var collection = Backbone.Collection.new();
-		var model = Backbone.Model.new();
+		var collection = new Backbone.Collection().new();
+		var model = new Backbone.Model().new();
 		model.sync = function(method, model, options){ options.success(); };
 		var addWascalled = false;
 		collection.on('add', function(){ addWascalled = true; });
@@ -625,7 +625,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function addSortsCollectionAfterMerge() {
-		var collection = Backbone.Collection.new([
+		var collection = new Backbone.Collection().new([
 			{id: 1, x: 1},
 			{id: 2, x: 2}
 		]);
@@ -636,15 +636,14 @@ component extends="mxunit.framework.TestCase" {
 	
 
 	public void function setUp() {
-		variables.Backbone  = new backbone.Backbone();
 		variables._ = new github.UnderscoreCF.Underscore();
 
-		variables.a		 = Backbone.Model.new({id: 3, label: 'a'});
-		variables.b		 = Backbone.Model.new({id: 2, label: 'b'});
-		variables.c		 = Backbone.Model.new({id: 1, label: 'c'});
-		variables.d		 = Backbone.Model.new({id: 0, label: 'd'});
-		variables.col	   = Backbone.Collection.new([a,b,c,d]);
-		variables.otherCol  = Backbone.Collection.new();
+		variables.a		 = new Backbone.Model().new({id: 3, label: 'a'});
+		variables.b		 = new Backbone.Model().new({id: 2, label: 'b'});
+		variables.c		 = new Backbone.Model().new({id: 1, label: 'c'});
+		variables.d		 = new Backbone.Model().new({id: 0, label: 'd'});
+		variables.col	   = new Backbone.Collection().new([a,b,c,d]);
+		variables.otherCol  = new Backbone.Collection().new();
 		
 		variables.lastRequest = {};
 
@@ -660,6 +659,5 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function tearDown() {
-		structDelete(variables, "Backbone");
 	}
 }

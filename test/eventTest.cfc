@@ -2,7 +2,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function onAndTrigger() {
 		var obj = { counter: 0 };
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events();
 		obj.on('event', function() { obj.counter += 1; });
 		obj.trigger('event');
 		assertEquals(obj.counter, 1, 'counter should be incremented.');
@@ -15,7 +15,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function bindingAndTriggeringMultipleEvents() {
 		var obj = { counter: 0 };
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events());
 
 		obj.on('a b c', function() { obj.counter += 1; });
 
@@ -38,7 +38,7 @@ component extends="mxunit.framework.TestCase" {
 		var b = false;
 		var obj = { counter: 0 };
 
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events());
 
 		obj.on('all', function(event) {
 		  obj.counter++;
@@ -53,7 +53,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function onThenUnbindAllFunctions() {
 		var obj = { counter: 0 };
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events());
 
 		var callback = function() { obj.counter += 1; };
 		obj.on('event', callback);
@@ -65,7 +65,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function bindTwoCallbacksAndUnbindOnlyOnce() {
 		var obj = { counterA: 0, counterB: 0 };
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events());
 
 		var callback = function() { obj.counterA += 1; };
 		obj.on('event', callback);
@@ -79,7 +79,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function unbindACallbackInTheMidstOfItFiring() {
 		var obj = {counter: 0};
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events());
 
 		var callback = function() {
 		  obj.counter += 1;
@@ -94,7 +94,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function twoUnbindsThatUnbindThemselves() {
 		 var obj = { counterA: 0, counterB: 0 };
-		_.extend(obj,Backbone.Events);
+		_.extend(obj,new Backbone.Events());
 		var incrA = function(){ obj.counterA += 1; obj.off('event', incrA); };
 		var incrB = function(){ obj.counterB += 1; obj.off('event', incrB); };
 		obj.on('event', incrA);
@@ -115,7 +115,7 @@ component extends="mxunit.framework.TestCase" {
 			}
 		};
 
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		obj.on('event', function () { this.assertTrue(); }, TestStruct);
 		obj.trigger('event');
 		assertTrue(assertRan);
@@ -123,7 +123,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function nestedTriggerWithUnbind() {
 		var obj = { counter: 0 };
-		_.extend(obj, Backbone.Events);
+		_.extend(obj, new Backbone.Events());
 		var incr1 = function(){ obj.counter += 1; obj.off('event', incr1); obj.trigger('event'); };
 		var incr2 = function(){ obj.counter += 1; };
 		obj.on('event', incr1);
@@ -134,7 +134,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function callbacksListIsNotAlteredDuringTrigger() {
 		var counter = 0;
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		var incr = function(){ counter++; };
 		obj.on('event', function(){ obj.on('event', incr); obj.on('all', incr); });
 		obj.trigger('event');
@@ -149,7 +149,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function allCallbackListIsRetrievedAfterEachEvent() {
 		var counter = 0;
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		var incr = function(){ counter++; };
 		obj.on('x', function() {
 			obj.on('y', incr);
@@ -160,13 +160,13 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function ifNoCallbackIsProvidedOnIsANoop() {
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		obj.on('test');
 		obj.trigger('test');
 	}
 
 	public void function removeAllEventsForASpecificContext() {
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		obj.on('x y all', function() { assertTrue(true); });
 		obj.on('x y all', function() { assertTrue(false); }, obj);
 		obj.off(context = obj);
@@ -174,7 +174,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function removeAllEventsForASpecificCallback() {
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		var success = function() { assertTrue(true); };
 		var fail = function() { assertTrue(false); };
 		obj.on('x y all', success);
@@ -184,7 +184,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function offDoesNotSkipConsecutiveEvents() {
-		var obj = _.extend({}, Backbone.Events);
+		var obj = _.extend({}, new Backbone.Events());
 		obj.on('event', function() { assertTrue(false); }, obj);
 		obj.on('event', function() { assertTrue(false); }, obj);
 		obj.off(context = obj);
@@ -193,7 +193,7 @@ component extends="mxunit.framework.TestCase" {
 
 	// TODO
 	// test("off is chainable", 3, function() {
-	//	 var obj = _.extend({}, Backbone.Events);
+	//	 var obj = _.extend({}, new Backbone.Events());
 	//	 // With no events
 	//	 ok(obj.off() === obj);
 	//	 // When removing all events
@@ -205,26 +205,11 @@ component extends="mxunit.framework.TestCase" {
 	//   });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 	public void function setUp() {
-		variables.Backbone  = new backbone.Backbone();
-
 		variables._ = new github.UnderscoreCF.Underscore();
 	}
 
 	public void function tearDown() {
-		structDelete(variables, "Backbone");
+
 	}
 }

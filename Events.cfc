@@ -1,4 +1,4 @@
-component extends="Core" {
+component extends="Backbone" {
 	// Bind one or more space separated events, events, to a callback function. Passing "all" will bind the callback to all events fired.
 	this.on = function (required string eventName, callback, context = {}) {
 

@@ -16,7 +16,7 @@ component extends="Events" {
 	// Returns a function that generates a new instance of the Model. 
     this.extend = function (struct properties = {}) {
 		return function (struct attributes = {}, struct options = {}) {
-			var Model = duplicate(Backbone.Model);
+			var Model = new Model();
 
 			_.extend(Model, properties);
 
@@ -31,7 +31,7 @@ component extends="Events" {
 				arguments.attributes = _.extend({}, defaults, arguments.attributes);
 			}
 
-			_.extend(Model, duplicate(Backbone.Events));
+			// _.extend(Model, duplicate(new Backbone.Events));
 
 			_.bindAll(Model);
 
@@ -58,7 +58,7 @@ component extends="Events" {
     this.escape = function (required string attr) {
 		if (!this.has(attr)) return '';
 		var result = _.escape(this.get(attr));
-		this._escapedAttributes[attr] = result;
+		variables._escapedAttributes[attr] = result;
 		return result;
 	};
     // Set a hash of model attributes on the object, firing `"change"` unless you choose to silence it.
@@ -80,14 +80,14 @@ component extends="Events" {
 
 		// Run validation
 		if (options.unset) for (attr in attrs) attrs[attr] = '';
-		if (!this._validate(attrs, options)) return false;
+		if (!variables._validate(attrs, options)) return false;
 
 		// Check for changes of id.
 		if (_.has(attrs, this.idAttribute)) { this.id = attrs[this.idAttribute]; }
 
 		options.changes = _.has(options, 'changes') ? options.changes : {};
 		var now = this.attributes;
-		var escaped = this._escapedAttributes;
+		var escaped = variables._escapedAttributes;
 		var prev = _.has(this, '_previousAttributes') ? this._previousAttributes : {};
 
 		// For each `set` attribute...
@@ -100,7 +100,7 @@ component extends="Events" {
 				|| (options.unset && _.has(now, attr))) {
 				structDelete(escaped, attr);
 				if (options.silent)
-					this._silent[attr] = true;
+					variables._silent[attr] = true;
 				else
 					options.changes[attr] = true;
 			}
@@ -115,10 +115,10 @@ component extends="Events" {
 			if ((_.has(prev, attr) && !_.isEqual(prev[attr], val)) ||
 				(_.has(now, attr) != _.has(prev, attr))) {
 				this.changed[attr] = val;
-				if (!options.silent) this._pending[attr] = true;
+				if (!options.silent) variables._pending[attr] = true;
 			} else {
 				structDelete(this.changed, attr);
-				structDelete(this._pending, attr);
+				structDelete(variables._pending, attr);
 			}
 		}
 
@@ -168,7 +168,7 @@ component extends="Events" {
 			return false;
 		}
 
-		options.error = Backbone.wrapError(options.error, model, options);
+		options.error = this.wrapError(options.error, model, options);
 		var xhr = this.sync('delete', this, options);
 		if (!options.wait) destroy();
 		if (!isNull(xhr)) return xhr;
@@ -211,17 +211,17 @@ component extends="Events" {
 	// Call this method to manually fire a "change" event for this model and a "change:attribute"
 	//  event for each changed attribute. Calling this will cause all objects observing the model to update.
     this.change = function (options = {}) {
-		var changing = this._changing;
-		this._changing = true;
+		var changing = variables._changing;
+		variables._changing = true;
 
 		options.changes = _.has(options, 'changes') ? options.changes : {};
 
 		// Silent changes become pending changes.
-		for (var attr in this._silent) this._pending[attr] = true;
+		for (var attr in variables._silent) variables._pending[attr] = true;
 
 		// Silent changes are triggered.
-		var changes = _.extend({}, options.changes, this._silent);
-		this._silent = {};
+		var changes = _.extend({}, options.changes, variables._silent);
+		variables._silent = {};
 		for (var attr in changes) {
 			if (!isNull(this.get(attr)))
 				var val = this.get(attr);
@@ -232,19 +232,19 @@ component extends="Events" {
 		if (changing) return this;
 
 		// Continue firing "change" events while there are pending changes.
-		while (!_.isEmpty(this._pending)) {
-			this._pending = {};
+		while (!_.isEmpty(variables._pending)) {
+			variables._pending = {};
 			this.trigger('change', this, options);
 
 			// Pending and silent changes still remain.
 			for (var attr in this.changed) {
-				if (_.has(this._pending, attr) || _.has(this._silent, attr)) continue;
+				if (_.has(variables._pending, attr) || _.has(variables._silent, attr)) continue;
 				structDelete(this.changed, attr);
 			}
 			this._previousAttributes = _.clone(this.attributes);
 		}
 
-		this._changing = false;
+		variables._changing = false;
 		return this;
 	};
 	// Determine if the model has changed since the last `"change"` event.
@@ -276,9 +276,9 @@ component extends="Events" {
 		return serializeJSON(this.attributes);
 	};
 	// Proxy `Backbone.sync` by default.
-    this.sync = function() {
-		return Backbone.sync(argumentCollection = arguments);
-	};
+ //    this.sync = function() {
+	// 	return this.sync(argumentCollection = arguments);
+	// };
     // Create a new model with identical attributes to this one.
     this.clone = function () {
 		return this.new(this.attributes);
@@ -323,7 +323,7 @@ component extends="Events" {
 
 		// If we're "wait"-ing to set changed attributes, validate early.
 		if (options.wait) {
-			if (!this._validate(attrs, options)) return false;
+			if (!variables._validate(attrs, options)) return false;
 			var current = _.clone(this.attributes);
 		}
 
@@ -356,7 +356,7 @@ component extends="Events" {
 
 		// Finish configuring and sending the http request.
 		options.error = _.has(options, 'error') ? options.error : false;
-		options.error = Backbone.wrapError(options.error, model, options);
+		options.error = this.wrapError(options.error, model, options);
 		var method = this.isNew() ? 'create' : 'update';
 		var xhr = this.sync(method, model, options);
 

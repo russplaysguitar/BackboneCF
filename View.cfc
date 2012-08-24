@@ -7,13 +7,13 @@ component extends="Events" {
 	// Returns a function that creates new instances of this view
 	this.extend = function (struct obj = {}) {
 		return function (struct options = {}) {
-			var View = duplicate(Backbone.View);
+			var View = new Backbone.View();
 
 			_.extend(options, obj);
 
 			_.extend(View, obj);
 
-			_.extend(View, duplicate(Backbone.Events));
+			// _.extend(View, duplicate(Backbone.Events));
 
 			// apply special options directly to View
 			var specialOptions = ['model','collection','el','id','className','tagName','attributes'];

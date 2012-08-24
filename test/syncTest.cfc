@@ -158,7 +158,7 @@ component extends="mxunit.framework.TestCase" {
 
 
 	public void function setUp() {
-		variables.Backbone  = new backbone.Backbone();
+		// variables.Backbone  = new backbone.Backbone();
 
 		variables._ = new github.UnderscoreCF.Underscore();
 
@@ -169,7 +169,7 @@ component extends="mxunit.framework.TestCase" {
 			dataType: ''
 		};
 
-		LibCollect = Backbone.Collection.extend({
+		LibCollect = new Backbone.Collection().extend({
 			url : function() { return '/library'; }
 		});
 
@@ -190,7 +190,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function tearDown() {
-		structDelete(variables, "Backbone");
+		// structDelete(variables, "Backbone");
 	}
 
 }

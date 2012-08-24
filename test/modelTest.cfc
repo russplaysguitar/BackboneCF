@@ -1,7 +1,7 @@
 component extends="mxunit.framework.TestCase" {
 
 	public void function initialize() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			initialize: function() {
 				this.one = 1;
 				assertEquals(this.Collection.cid, collection.cid);
@@ -13,7 +13,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function initWithAttrsAndOpts() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			initialize: function(attributes, options) {
 				this.one = options.one;
 			}
@@ -23,7 +23,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function initWithParsedAtts() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			parse: function(obj) {
 				obj.value += 1;
 				return obj;
@@ -51,7 +51,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function urlWhenUsingUrlRootAndUriEncoding() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			urlRoot: '/collection'
 		});
 		var m = Model();
@@ -61,7 +61,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function urlWhenUsingUrlRootAsAFunctionToDetermineUrlRootAtRuntime() {
-		var Model = Backbone.Model.extend({
+		var Model = new Backbone.Model().extend({
 			urlRoot: function() {
 				return '/nested/' & this.get('parent_id') & '/collection';
 			}
@@ -74,7 +74,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function clone() {
-		var a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3});
+		var a = new Backbone.Model().new({ 'foo': 1, 'bar': 2, 'baz': 3});
 		var b = a.clone();
 		assertEquals(a.get('foo'), 1);
 		assertEquals(a.get('bar'), 2);
@@ -88,15 +88,15 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function isNew() {
-		var a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3});
+		var a = new Backbone.Model().new({ 'foo': 1, 'bar': 2, 'baz': 3});
 		assertTrue(a.isNew(), "it should be new");
-		a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3, 'id': -5 });
+		a = new Backbone.Model().new({ 'foo': 1, 'bar': 2, 'baz': 3, 'id': -5 });
 		assertTrue(!a.isNew(), "any defined ID is legal, negative or positive");
-		a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3, 'id': 0 });
+		a = new Backbone.Model().new({ 'foo': 1, 'bar': 2, 'baz': 3, 'id': 0 });
 		assertTrue(!a.isNew(), "any defined ID is legal, including zero");
-		assertTrue( Backbone.Model.new({		  }).isNew(), "is true when there is no id");
-		assertTrue(!Backbone.Model.new({ 'id': 2  }).isNew(), "is false for a positive integer");
-		assertTrue(!Backbone.Model.new({ 'id': -5 }).isNew(), "is false for a negative integer");
+		assertTrue( new Backbone.Model().new({		  }).isNew(), "is true when there is no id");
+		assertTrue(!new Backbone.Model().new({ 'id': 2  }).isNew(), "is false for a positive integer");
+		assertTrue(!new Backbone.Model().new({ 'id': -5 }).isNew(), "is false for a negative integer");
 	}
 
 	public void function get() {
@@ -117,7 +117,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function has() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 
 		assertEquals(model.has('name'), false);
 
@@ -147,7 +147,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function setAndUnset() {
-		var a = Backbone.Model.new({id: 'id', foo: 1, bar: 2, baz: 3});
+		var a = new Backbone.Model().new({id: 'id', foo: 1, bar: 2, baz: 3});
 		var changeCount = 0;
 		a.on("change:foo", function() { changeCount += 1; });
 		a.set({'foo': 2});
@@ -172,7 +172,7 @@ component extends="mxunit.framework.TestCase" {
 	public void function multipleUnsets() {
 		var i = 0;
 		var counter = function(){ i++; };
-		var model = Backbone.Model.new({a: 1});
+		var model = new Backbone.Model().new({a: 1});
 		model.on("change:a", counter);
 		model.set({a: 2});
 		model.unset('a');
@@ -181,7 +181,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function unsetAndChangedAttribute() {
-		var model = Backbone.Model.new({a: 1});
+		var model = new Backbone.Model().new({a: 1});
 		model.unset('a', {silent: true});
 		var changedAttributes = model.changedAttributes();
 		assertTrue(_.has(changedAttributes, 'a'), 'changedAttributes should contain unset properties');
@@ -191,7 +191,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function usingANonDefaultIdAttribute() {
-		var MongoModel = Backbone.Model.extend({idAttribute : '_id'});
+		var MongoModel = new Backbone.Model().extend({idAttribute : '_id'});
 		var model = MongoModel({id: 'eye-dee', _id: 25, title: 'Model'});
 		assertEquals(model.get('id'), 'eye-dee');
 		assertEquals(model.id, 25);
@@ -202,14 +202,14 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function setAnEmptyString() {
-		var model = Backbone.Model.new({name : "Model"});
+		var model = new Backbone.Model().new({name : "Model"});
 		model.set({name : ''});
 		assertEquals(model.get('name'), '');
 	}
 
 	public void function clear() {
 		var changed = false;
-		var model = Backbone.Model.new({id: 1, name : "Model"});
+		var model = new Backbone.Model().new({id: 1, name : "Model"});
 		model.on("change:name", function(){ changed = true; });
 		model.on("change", function() {
 			var changedAttrs = model.changedAttributes();
@@ -221,7 +221,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function defaults() {
-		var Defaulted = Backbone.Model.extend({
+		var Defaulted = new Backbone.Model().extend({
 		  defaults: {
 			"one": 1,
 			"two": 2
@@ -230,7 +230,7 @@ component extends="mxunit.framework.TestCase" {
 		var model = Defaulted({two: ''});
 		assertEquals(model.get('one'), 1);
 		assertEquals(model.get('two'), '');
-		Defaulted = Backbone.Model.extend({
+		Defaulted = new Backbone.Model().extend({
 		  defaults: function() {
 			return {
 			  "one": 3,
@@ -244,7 +244,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function change_hasChanged_changedAttrs_prev_prevAttr() {
-		var model = Backbone.Model.new({name : "Tim", age : 10});
+		var model = new Backbone.Model().new({name : "Tim", age : 10});
 		assertEquals(model.changedAttributes(), false);
 		model.on('change', function() {
 			assertTrue(model.hasChanged('name'), 'name changed');
@@ -263,7 +263,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function changeWithOptions() {
 		var value = false;
-		var model = Backbone.Model.new({name: 'Rob'});
+		var model = new Backbone.Model().new({name: 'Rob'});
 		model.on('change', function(model, options) {
 			value = options.prefix & model.get('name');
 		});
@@ -277,14 +277,14 @@ component extends="mxunit.framework.TestCase" {
 	public void function changeAfterInitialize() {
 		var changed = 0;
 		var attrs = {id: 1, label: 'c'};
-		var obj = Backbone.Model.new(attrs);
+		var obj = new Backbone.Model().new(attrs);
 		obj.on('change', function() { changed += 1; });
 		obj.set(attrs);
 		assertEquals(changed, 0);
 	}
 
 	public void function saveWithinChangeEvent() {
-		var model = Backbone.Model.new({firstName : "Taylor", lastName: "Swift"});
+		var model = new Backbone.Model().new({firstName : "Taylor", lastName: "Swift"});
 		var changeRan = false;
 		model.on('change', function () {
 			model.save();
@@ -297,7 +297,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function validateAfterSave() {
 		var lastError = false; 
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.validate = function(attrs) {
 			if (_.has(attrs, 'admin') && attrs.admin) return "Can't change admin status.";
 		};
@@ -312,7 +312,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function isValid() {
-		var model = Backbone.Model.new({valid: true});
+		var model = new Backbone.Model().new({valid: true});
 		model.validate = function(attrs) {
 			if (!attrs.valid) return "invalid";
 		};
@@ -332,7 +332,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function saveInPositionalStyle() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.sync = function(method, model, options) {
 			options.success();
 		};
@@ -351,13 +351,13 @@ component extends="mxunit.framework.TestCase" {
 		assertEquals(lastRequest.method, 'delete');
 		assertTrue(_.isEqual(lastRequest.model, doc));
 
-		var newModel = Backbone.Model.new();
+		var newModel = new Backbone.Model().new();
 		assertEquals(newModel.destroy(), false);
 		
 	}
 	
 	public void function nonPersistedDestroy() {
-		var a = Backbone.Model.new({ 'foo': 1, 'bar': 2, 'baz': 3});
+		var a = new Backbone.Model().new({ 'foo': 1, 'bar': 2, 'baz': 3});
 		a.sync = function() { throw "should not be called"; };
 		a.destroy();
 		assertTrue(true, "non-persisted model should not call sync");
@@ -365,7 +365,7 @@ component extends="mxunit.framework.TestCase" {
 	
 	public void function validate() {
 		var lastError = false;
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.validate = function(attrs) {
 			var this_admin = _.has(this.attributes, 'admin') ? this.get('admin') : '';
 			var attrs_admin = _.has(attrs, 'admin') ? attrs.admin : '';
@@ -388,7 +388,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function validateOnUnsetAndClear() {
 		var error = false;
-		var model = Backbone.Model.new({name: "One"});
+		var model = new Backbone.Model().new({name: "One"});
 		model.validate = function(attrs) {
 		  if (!_.has(attrs, 'name') || attrs.name == '') {
 			error = true;
@@ -411,7 +411,7 @@ component extends="mxunit.framework.TestCase" {
 	public void function validateWithErrorCallback() {
 		var lastError = false;
 		var boundError = false;
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.validate = function(attrs) {
 			if (_.has(attrs, 'admin') && attrs.admin) return "Can't change admin status.";
 		};
@@ -434,7 +434,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function defaultsAlwaysExtendAttrs() {
-		var Defaulted = Backbone.Model.extend({
+		var Defaulted = new Backbone.Model().extend({
 		  defaults: {one: 1},
 		  initialize : function(attrs, opts) {
 			assertEquals(this.attributes.one, 1);
@@ -447,7 +447,7 @@ component extends="mxunit.framework.TestCase" {
 	// TODO: need to adjust Model structure to make this work
 	// public void function inheritClassProperties() {
 	// 	var nullFunc = function () {};
-	// 	var Parent = Backbone.Model.extend({
+	// 	var Parent = new Backbone.Model().extend({
 	// 	   instancePropSame: nullFunc,
 	// 	   instancePropDiff: nullFunc
 	// 	 }, {
@@ -471,7 +471,7 @@ component extends="mxunit.framework.TestCase" {
 	// }
 
 	public void function nestedChangeEventsDontClobberPrevAtts() {
-		var m = Backbone.Model.new();
+		var m = new Backbone.Model().new();
 		var change1ran = false;
 		var change2ran = false;
 		m.on('change:state', function(model, newState) {
@@ -494,7 +494,7 @@ component extends="mxunit.framework.TestCase" {
 	public void function hasChangedSetUseSameComparison() {
 		var changed = 0;
 		var changeRan = false;
-		var model = Backbone.Model.new({a: ''});
+		var model = new Backbone.Model().new({a: ''});
 		model.on('change', function() {
 			changeRan = true;
 			assertTrue(this.hasChanged('a'));
@@ -508,7 +508,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function changeAttCallbacksShouldFireAfterAllChangesHaveOccurred() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var assertionRan = false;
 
 		var assertion = function() {
@@ -528,20 +528,20 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function setWithAttributesProperty() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.set({attributes: true});
 		assertTrue(model.has('attributes'));
 	}
 
 	public void function setValueRegardlessOfEqualityOrChange() {
-		var model = Backbone.Model.new({x: []});
+		var model = new Backbone.Model().new({x: []});
 		var a = [];
 		model.set({x: a});
 		assertEquals(model.get('x'), a);
 	}
 
 	public void function unsetFiresChangeForBlankAttributes() {
-		var model = Backbone.Model.new({x: ''});
+		var model = new Backbone.Model().new({x: ''});
 		var changeRan = false;
 		model.on('change:x', function(){ changeRan = true; });
 		model.unset('x');
@@ -549,12 +549,12 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function setBlankValues() {
-		var model = Backbone.Model.new({x: ''});
+		var model = new Backbone.Model().new({x: ''});
 		assertTrue(_.has(model.attributes, 'x'));
 	}
 
 	public void function changeFiresChangeAtt() {
-		var model = Backbone.Model.new({x: 1});
+		var model = new Backbone.Model().new({x: 1});
 		var changeRan = false;
 		model.set({x: 2}, {silent: true});
 		model.on('change:x', function(){ changeRan = true; });
@@ -563,7 +563,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function hasChangedIsFalseAfterOriginalValuesAreSet() {
-		var model = Backbone.Model.new({x: 1});
+		var model = new Backbone.Model().new({x: 1});
 		model.on('change:x', function(){ assertTrue(false); });
 		model.set({x: 2}, {silent: true});
 		assertTrue(model.hasChanged());
@@ -572,20 +572,20 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function saveWithWaitSucceedsWithoutValidate() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.save({x: 1}, {wait: true});
 		assertEquals(lastRequest.model, model);
 	}
 
 	public void function hasChangedForFalsyKeys() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.set({x: true}, {silent: true});
 		assertTrue(!model.hasChanged(0));
 		assertTrue(!model.hasChanged(''));
 	}
 
 	public void function previousForFalsyKeys() {
-		var model = Backbone.Model.new({0: true, '': true});
+		var model = new Backbone.Model().new({0: true, '': true});
 		model.set({0: false, '': false}, {silent: true});
 		assertEquals(model.previous(0), true);
 		assertEquals(model.previous(''), true);
@@ -593,7 +593,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function saveWithWaitSendsCorrectAttributes() {
 		var changed = 0;
-		var model = Backbone.Model.new({x: 1, y: 2});
+		var model = new Backbone.Model().new({x: 1, y: 2});
 		model.on('change:x', function() { changed++; });
 		model.save({x: 3}, {wait: true});
 		assertEquals(deserializeJSON(ajaxParams.data), {x: 3, y: 2});
@@ -605,13 +605,13 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function aFailedSaveWithWaitDoesntLeaveAttributesBehind() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.save({x: 1}, {wait: true});
 		assertTrue(isNull(model.get('x')));
 	}
 
 	public void function saveWithWaitResultsInCorrectAttributesIfSuccessIsCalledDuringSync() {
-		var model = Backbone.Model.new({x: 1, y: 2});
+		var model = new Backbone.Model().new({x: 1, y: 2});
 		model.sync = function(method, model, options) {
 			options.success();
 		};
@@ -623,7 +623,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function saveWithWaitValidatesAttributes() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var validateRan = false;
 		model.validate = function() { validateRan = true; };
 		model.save({x: 1}, {wait: true});
@@ -632,7 +632,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function nestedSetDuringChangeAtt() {
 		var events = [];
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.on('all', function(event) { arrayAppend(events, event, true); });
 		model.on('change', function() {
 			model.set({z: true}, {silent:true});
@@ -648,7 +648,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function nestedChangeOnlyFiresOnce() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var changeRan = 0;
 		model.on('change', function() {
 			changeRan++;
@@ -659,14 +659,14 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function noChangeEventIfNoChanges() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.on('change', function() { assertTrue(false); });
 		model.change();
 	}
 
 	public void function nestedSetDuringChange() {
 		var count = 0;
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.on('change', function() {
 		  switch(count++) {
 			case 0:
@@ -692,7 +692,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function nestedChangeWithSilent() {
 		var count = 0;
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var changeRan = false;
 		model.on('change:y', function() { changeRan = true; });
 		model.on('change', function() {
@@ -714,7 +714,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function multipleNestedChangesWithSilent() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var value = false;
 		var changeTimes = 0;
 		model.on('change:x', function() {
@@ -732,7 +732,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function nestedSetMultipleTimes() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var changeTimes = 0;
 		model.on('change:b', function() {
 			changeTimes++;
@@ -749,7 +749,7 @@ component extends="mxunit.framework.TestCase" {
 		var errorCallbackRan = false;
 		var resp = {};
 		var options = {};
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var error = function (_model, _resp, _options) {
 		  assertEquals(model, _model);
 		  assertEquals(resp,  _resp);
@@ -767,27 +767,27 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function isValidReturnsTrueInTheAbsenceOfValidate() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		structDelete(model, 'validate');
 		assertTrue(model.isValid());
 	}
 
 	public void function clearDoesNotAlterOptions() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var options = {};
 		model.clear(options);
 		assertTrue(!_.has(options, 'unset'));
 	}
 
 	public void function unsetDoesNotAlterOptions() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var options = {};
 		model.unset('x', options);
 		assertTrue(!_.has(options, 'unset'));
 	}
 
 	public void function optionsIsPassedToSuccessCallbacks() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		var successRan = false;
 		var opts = {
 			success: function( model, resp, options ) {
@@ -806,7 +806,7 @@ component extends="mxunit.framework.TestCase" {
 	
 	public void function triggerSyncEvent() {
 		var syncTimes = 0;
-		var model = Backbone.Model.new({id: 1});
+		var model = new Backbone.Model().new({id: 1});
 		model.sync = function(method, model, options) { options.success(); };
 		model.on('sync', function() { syncTimes++; });
 		model.fetch();
@@ -816,7 +816,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function destroyNewModelsExecuteSuccessCallback() {
-		var m = Backbone.Model.new();
+		var m = new Backbone.Model().new();
 		var destroyRan = false;
 		var successRan = false;
 		m.on('sync', function() { assertTrue(false); });
@@ -827,7 +827,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function saveAnInvalidModelCannotBePersisted() {
-		var model = Backbone.Model.new();
+		var model = new Backbone.Model().new();
 		model.validate = function(){ return 'invalid'; };
 		model.sync = function(){ assertTrue(false); };
 		assertEquals(model.save(), false);		
@@ -843,10 +843,10 @@ component extends="mxunit.framework.TestCase" {
 
 		variables.Backbone.Model.urlRoot = '/';
 
-		var klass = Backbone.Collection.extend({
+		var klass = new Backbone.Collection().extend({
 			url: function() { return '/collection'; }
 		});
-		var proxy = Backbone.Model.extend();
+		var proxy = new Backbone.Model().extend();
 
 		variables.doc = proxy({
 			id	 : '1-the-tempest',

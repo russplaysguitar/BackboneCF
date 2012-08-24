@@ -11,15 +11,15 @@ component extends="Events" {
 	};
 	// Returns a new Collection. Equivalent to: new Backbone.Collection(models, options) in BackboneJS
     this.new = function (array models = [], options = {}) {
-		var NewCollection = Backbone.Collection.extend();
+		var NewCollection = new Collection().extend();
 		return NewCollection(models, options);
 	};
 	// Returns a function that creates new instances of this Collection.
     this.extend = function (struct properties = {}) {
 		return function (models = [], options = {}) {
-			var Collection = duplicate(Backbone.Collection);
+			var Collection = new Collection();
 
-			_.extend(Collection, duplicate(Backbone.Events));
+			// _.extend(Collection, duplicate(Backbone.Events));
 
 			// TODO: make these work better, possibly by using proxies
 			// methods we want to implement from Underscore
@@ -286,8 +286,8 @@ component extends="Events" {
 			collection.trigger('sync', collection, resp, options);
 		};
 		options.error = _.has(options, 'error') ? options.error : false;
-		options.error = Backbone.wrapError(options.error, collection, options);
-		var result = Backbone.Sync('read', collection, options);
+		options.error = this.wrapError(options.error, collection, options);
+		var result = this.Sync('read', collection, options);
 	};
 	// When you have more items than you want to add or remove individually,
 	// you can reset the entire set with a new list of models, without firing

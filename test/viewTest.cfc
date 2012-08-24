@@ -29,7 +29,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function initialize() {
-		var View = Backbone.View.extend({
+		var View = new Backbone.View().extend({
 			initialize: function() {
 				this.one = 1;
 			}
@@ -39,7 +39,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function withClassnameAndIdFunctions() {
-		var View = Backbone.View.extend({
+		var View = new Backbone.View().extend({
 			className: function() {
 				return 'className';
 			},
@@ -63,7 +63,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function withAttributesAsAFunction() {
-		var viewClass = Backbone.View.extend({
+		var viewClass = new Backbone.View().extend({
 			attributes: function() {
 				return {'class': 'dynamic'};
 			}
@@ -90,11 +90,10 @@ component extends="mxunit.framework.TestCase" {
 
 
 	public void function setUp() {
-		variables.Backbone  = new backbone.Backbone();
 
 		variables._ = new github.UnderscoreCF.Underscore();
 
-		view = Backbone.View.new({
+		view = new Backbone.View().new({
 			id        : 'test-view',
 			className : 'test-view'
 		});
@@ -102,6 +101,6 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function tearDown() {
-		structDelete(variables, "Backbone");
+
 	}
 }
