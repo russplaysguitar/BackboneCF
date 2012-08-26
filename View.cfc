@@ -1,4 +1,4 @@
-component extends="Events" {
+component extends="Backbone" {
 	// Create a new Backbone.View
 	this.new = function (struct options = {}) {
 		var BackboneView = new View().extend();
@@ -13,7 +13,7 @@ component extends="Events" {
 
 			_.extend(View, obj);
 
-			// _.extend(View, duplicate(Backbone.Events));
+			_.extend(View, new Backbone.Events());
 
 			// apply special options directly to View
 			var specialOptions = ['model','collection','el','id','className','tagName','attributes'];

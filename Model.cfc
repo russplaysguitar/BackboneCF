@@ -1,4 +1,5 @@
-component extends="Events" {
+component extends="Backbone" {
+	variables.self = this;
     this.initialize = function () {};// Initialize is an empty function by default. Override it with your own initialization logic.
     this.attributes = {};
     this.defaults = {};
@@ -10,18 +11,21 @@ component extends="Events" {
     this.idAttribute = 'id';// The default name for the JSON `id` attribute is `"id"`. MongoDB and CouchDB users may want to set this to `"_id"`.
 	// Create a new model, with defined attributes. A client id (`cid`) is automatically generated and assigned for you. Equivalent to: new Backbone.Model(); in BackboneJS
     this.new = function (struct attributes = {}, struct options = {}) {
-		var BackboneModel = new Model().extend();
+		var BackboneModel = this.extend();
 		return BackboneModel(attributes, options);
 	};
+	// init idea...?
+	// this.init = function (struct properties = {}) {
+	// 	return this.extend(argumentCollection = arguments);
+	// };
 	// Returns a function that generates a new instance of the Model. 
     this.extend = function (struct properties = {}) {
 		return function (struct attributes = {}, struct options = {}) {
-			var Model = new Model();
+			var Model = variables.self;
 
 			_.extend(Model, properties);
 
 			if (_.has(options, 'collection')) Model.collection = options.collection;
-		   		// Model.collection = function () { return options.collection; };
 
 		   	if (_.has(options, 'parse'))
 		   		arguments.attributes = Model.parse(arguments.attributes);
@@ -31,7 +35,7 @@ component extends="Events" {
 				arguments.attributes = _.extend({}, defaults, arguments.attributes);
 			}
 
-			// _.extend(Model, duplicate(new Backbone.Events));
+			_.extend(Model, new Backbone.Events());
 
 			_.bindAll(Model);
 

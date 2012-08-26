@@ -55,7 +55,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 	
 	public void function viewWithAttributes() {
-		var view = Backbone.View.new({attributes : {'class': 'one', id: 'two'}});
+		var view = new Backbone.View().new({attributes : {'class': 'one', id: 'two'}});
 		var xmlEl = xmlParse(view.el);
 		var xmlElAttrs = xmlEl.div.xmlAttributes;
 		assertEquals(xmlElAttrs.class, 'one');

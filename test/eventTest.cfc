@@ -2,7 +2,7 @@ component extends="mxunit.framework.TestCase" {
 
 	public void function onAndTrigger() {
 		var obj = { counter: 0 };
-		_.extend(obj, new Backbone.Events();
+		_.extend(obj, new Backbone.Events());
 		obj.on('event', function() { obj.counter += 1; });
 		obj.trigger('event');
 		assertEquals(obj.counter, 1, 'counter should be incremented.');

@@ -4,7 +4,7 @@ component {
 		variables._ = new github.UnderscoreCF.Underscore();
 
 		// handles basic http requests
-		variables.httpCFC = new Http();
+		this.httpCFC = new Http();
 
 		// Turn on `emulateJSON` to support legacy servers that can't deal with direct
 		// `application/json` requests ... will encode the body as
@@ -23,6 +23,11 @@ component {
 			'delete': 'DELETE',
 			'read':   'GET'
 		};	
+
+		// this.ajax = function () {
+		// 	writeDump('defaultAjax');
+		// 	return this.httpCFC.request(argumentCollection = arguments);
+		// };
 	}
 
 	public any function wrapError(onError, required struct originalModel, struct options = {}) {
@@ -65,7 +70,7 @@ component {
 		// And an `X-HTTP-Method-Override` header.
 		if (this.emulateHTTP) {
 			if (type == 'PUT' || type == 'DELETE') {
-				if (Backbone.emulateJSON)
+				if (this.emulateJSON)
 					params.data._method = type;
 				params.type = 'POST';
 				params.headers = {
@@ -78,7 +83,7 @@ component {
 		if (!_.has(params, 'data')) params.data = {};
 
 		// Don't process data on a non-GET request.
-		if (params.type != 'GET' && !Backbone.emulateJSON) {
+		if (params.type != 'GET' && !this.emulateJSON) {
 			params.processData = false;
 		}
 
@@ -86,7 +91,8 @@ component {
 		return this.ajax(argumentCollection = _.extend(params, options));
 	}
 
-	public struct function ajax() {
-		return httpCFC.request(argumentCollection = arguments);
-	}
+	// uncommenting this messes up tests...
+	// public struct function ajax() {
+	// 	return this.httpCFC.request(argumentCollection = arguments);
+	// }
 }

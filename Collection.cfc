@@ -2,24 +2,24 @@
 // Provides a standard collection class for our sets of models, ordered
 // or unordered. If a `comparator` is specified, the Collection will maintain
 // its models in sort order, as they're added and removed.
-component extends="Events" {
+component extends="Backbone" {
     this.initialize = function () {};// Initialize is an empty function by default. Override it with your own initialization logic.
-	this.Model = new Model().extend();// The default model for a collection is just a **Backbone.Model**. This should be overridden in most cases.
+	this.Model = new Model();// The default model for a collection is just a **Backbone.Model**. This should be overridden in most cases.
 	this.models = [];
     this.length = function () {
 		return arrayLen(this.models);
 	};
 	// Returns a new Collection. Equivalent to: new Backbone.Collection(models, options) in BackboneJS
     this.new = function (array models = [], options = {}) {
-		var NewCollection = new Collection().extend();
+		var NewCollection = this.extend();
 		return NewCollection(models, options);
 	};
 	// Returns a function that creates new instances of this Collection.
     this.extend = function (struct properties = {}) {
 		return function (models = [], options = {}) {
-			var Collection = new Collection();
+			var Collection = this;
 
-			// _.extend(Collection, duplicate(Backbone.Events));
+			_.extend(Collection, new Backbone.Events());
 
 			// TODO: make these work better, possibly by using proxies
 			// methods we want to implement from Underscore
@@ -314,7 +314,7 @@ component extends="Events" {
 		if (!(_.has(model, 'cid'))) {
 			var attrs = model;
 			options.collection = _.bind(function () { return this; }, this);
-			model = this.Model(attrs, options);
+			model = this.Model.new(attrs, options);
 			if (!model._validate(model.attributes, options))
 				model = false;
 		}

@@ -104,7 +104,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function urlError() {
-		var model = Backbone.Model.new();
+		var model = BackboneModel.new();
 		var threwError = false;
 		try {
 			model.fetch();
@@ -118,7 +118,7 @@ component extends="mxunit.framework.TestCase" {
 	}
 
 	public void function optionsIsOptional() {
-		var model = Backbone.Model.new();
+		var model = BackboneModel.new();
 		model.url = '/test';
 		Backbone.sync('create', model);
 	}
@@ -128,14 +128,14 @@ component extends="mxunit.framework.TestCase" {
 		Backbone.ajax = function(){
 			settingsOuter = arguments;
 		};
-		var model = Backbone.Model.new();
+		var model = BackboneModel.new();
 		model.url = '/test';
 		Backbone.sync('create', model);
 		assertEquals(settingsOuter.url, '/test');
 	}
 
 	public void function syncProcessDataFalse() {
-		var model = Backbone.Model.new();
+		var model = BackboneModel.new();
 		model.url = '/test';
 		Backbone.sync('create', model);	
 		assertFalse(lastRequest.processData);
@@ -169,8 +169,18 @@ component extends="mxunit.framework.TestCase" {
 			dataType: ''
 		};
 
-		LibCollect = new Backbone.Collection().extend({
-			url : function() { return '/library'; }
+		BBCollection = new Backbone.Collection();
+		BBCollection.Model.ajax = function() {
+			lastRequest = arguments;
+			return arguments;
+		};
+
+		LibCollect = BBCollection.extend({
+			url : function() { return '/library'; },
+			ajax: function() {
+				lastRequest = arguments;
+				return arguments;
+			}
 		});
 
 		variables.library = LibCollect();
@@ -181,12 +191,15 @@ component extends="mxunit.framework.TestCase" {
 			length : 123
 		  };
 
-		Backbone.ajax = function() {
+		library.create(attrs, {wait: false});
+
+		BackboneModel = new Backbone.Model();
+		BackboneModel.ajax = function() {
 			lastRequest = arguments;
 			return arguments;
 		};
-		library.create(attrs, {wait: false});
 
+		Backbone = new Backbone.Backbone();
 	}
 
 	public void function tearDown() {

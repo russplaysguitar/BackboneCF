@@ -638,12 +638,12 @@ component extends="mxunit.framework.TestCase" {
 	public void function setUp() {
 		variables._ = new github.UnderscoreCF.Underscore();
 
-		variables.a		 = new Backbone.Model().new({id: 3, label: 'a'});
-		variables.b		 = new Backbone.Model().new({id: 2, label: 'b'});
-		variables.c		 = new Backbone.Model().new({id: 1, label: 'c'});
-		variables.d		 = new Backbone.Model().new({id: 0, label: 'd'});
+		variables.a		   = new Backbone.Model().new({id: 3, label: 'a'});
+		variables.b		   = new Backbone.Model().new({id: 2, label: 'b'});
+		variables.c		   = new Backbone.Model().new({id: 1, label: 'c'});
+		variables.d		   = new Backbone.Model().new({id: 0, label: 'd'});
 		variables.col	   = new Backbone.Collection().new([a,b,c,d]);
-		variables.otherCol  = new Backbone.Collection().new();
+		variables.otherCol = new Backbone.Collection().new();
 		
 		variables.lastRequest = {};
 
